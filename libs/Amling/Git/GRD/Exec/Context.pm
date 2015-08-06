@@ -93,4 +93,36 @@ sub uptake_head
     $self->{'HEAD'} = Amling::Git::Utils::convert_commitlike('HEAD');
 }
 
+sub get_hooks_stack
+{
+    my $self = shift;
+    return $self->get('hooks-stack', [{}]);
+}
+
+sub get_hooks
+{
+    my $self = shift;
+    my $event = shift;
+
+    my @ret;
+    for my $frame (@{$self->get_hooks_stack()})
+    {
+        push @ret, @{$frame->{$event} || []};
+    }
+
+    return \@ret;
+}
+
+sub run_hooks
+{
+    my $self = shift;
+    my $event = shift;
+
+    for my $cmd (@{$self->get_hooks($event)})
+    {
+        print "Interpretting hook for $event: " . $cmd->str() . "\n";
+        $cmd->execute($self);
+    }
+}
+
 1;

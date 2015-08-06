@@ -1,4 +1,4 @@
-package Amling::Git::GRD::Command::Branch;
+package Amling::Git::GRD::Command::HooksPop;
 
 use strict;
 use warnings;
@@ -11,22 +11,25 @@ use base 'Amling::Git::GRD::Command::Simple';
 
 sub name
 {
-    return "branch";
+    return "hooks-pop";
 }
 
 sub args
 {
-    return 1;
+    return 0;
 }
 
 sub execute_simple
 {
     my $self = shift;
     my $ctx = shift;
-    my $branch = shift;
 
-    $ctx->run_hooks('pre-branch');
-    $ctx->get('branches', {})->{$branch} = $ctx->get_head();
+    my $stack = $ctx->get_hooks_stack();
+    my $popped = pop @$stack;
+    if(!@$stack)
+    {
+        die "Empty hooks stack popped";
+    }
 }
 
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
