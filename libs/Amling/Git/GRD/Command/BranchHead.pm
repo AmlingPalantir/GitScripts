@@ -25,7 +25,7 @@ sub execute_simple
     my $ctx = shift;
     my $branch = shift;
 
-    $ctx->run_hooks('pre-branch');
+    $ctx->run_hooks('pre-branch', 'BRANCH' => $branch);
     $ctx->get('branches', {})->{$branch} = $ctx->get_head();
     $ctx->set('head', [1, $branch]);
 }
