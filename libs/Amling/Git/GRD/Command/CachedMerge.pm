@@ -51,6 +51,7 @@ sub execute_simple
     {
         print "Fast-forward merging $template...\n";
         $ctx->set_head($template);
+        $ctx->run_hooks('post-merge', 'PARENT0' => $parent0, 'PARENTS1' => join(' ', @parents1));
     }
     else
     {

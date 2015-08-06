@@ -50,6 +50,7 @@ sub execute_simple
     }
 
     $ctx->uptake_head();
+    $ctx->run_hooks('post-merge', 'PARENT0' => $parent0, 'PARENTS1' => join(' ', @parents1));
 }
 
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
