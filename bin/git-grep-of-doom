@@ -62,7 +62,12 @@ GetOptions(
     'help!' => sub { usage(0); },
 ) || usage(1);
 
-for my $e (['pattern', \$pattern], ['tree', \$tree])
+my @DEFAULT_OPTIONS =
+(
+    ['pattern', \$pattern],
+    #['tree', \$tree],
+);
+for my $e (@DEFAULT_OPTIONS)
 {
     my ($name, $r) = @$e;
     if(defined($$r))
@@ -134,10 +139,10 @@ Options passed to git grep as per normal:
 Options mangled into unmarked arguments to git grep.  Any unmarked arguments to
 git-grep-of-doom will fill into these, in order:
    --pattern <pattern>           Specify pattern (in any order).
-   (--tree|--commit) <treeish>   Specify tree (in any order).  May be "NONE" to omit.
    --path <path>                 Specify path (in any order).
 
 Other options:
+   (--tree|--commit) <treeish>   Specify tree (in any order).  May be "NONE" to omit.
    --raw <option>                Pass this option to `git grep` raw (will be put before tree, pattern, etc.)
    --debug|-D                    Debug interpretation of arguments.
    --help                        Print this help.
