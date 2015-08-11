@@ -7,7 +7,6 @@ use Amling::Git::GRD::Command;
 use Amling::Git::GRD::Utils;
 use Amling::Git::Utils;
 
-
 sub handler
 {
     my $s = shift;
