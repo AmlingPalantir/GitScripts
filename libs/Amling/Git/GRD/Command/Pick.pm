@@ -98,6 +98,9 @@ sub execute_simple
         Amling::Git::Utils::run_system("git", "commit", "--amend", "-m", $msg) || die "Cannot amend?";
         $ctx->uptake_head();
     }
+
+    # note we intentionally do not run this for changes that didn't actually get picked
+    $ctx->run_hooks('post-pick', 'COMMIT' => $commit);
 }
 
 sub str_simple

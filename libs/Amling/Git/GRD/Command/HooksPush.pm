@@ -1,4 +1,4 @@
-package Amling::Git::GRD::Command::BranchHead;
+package Amling::Git::GRD::Command::HooksPush;
 
 use strict;
 use warnings;
@@ -11,23 +11,20 @@ use base 'Amling::Git::GRD::Command::Simple';
 
 sub name
 {
-    return "head";
+    return "hooks-push";
 }
 
 sub args
 {
-    return 1;
+    return 0;
 }
 
 sub execute_simple
 {
     my $self = shift;
     my $ctx = shift;
-    my $branch = shift;
 
-    $ctx->run_hooks('pre-branch', 'BRANCH' => $branch);
-    $ctx->get('branches', {})->{$branch} = $ctx->get_head();
-    $ctx->set('head', [1, $branch]);
+    push @{$ctx->get_hooks_stack()}, {};
 }
 
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
