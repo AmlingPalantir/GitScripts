@@ -104,6 +104,8 @@ sub get_hooks
     my $self = shift;
     my $event = shift;
 
+    die "No such event $event" unless(is_event($event));
+
     my @ret;
     for my $frame (@{$self->get_hooks_stack()})
     {
@@ -119,6 +121,8 @@ sub run_hooks
     my $event = shift;
     my @env = @_;
 
+    die "No such event $event" unless(is_event($event));
+
     if(@env)
     {
         my $k = shift @env;
@@ -132,6 +136,20 @@ sub run_hooks
         print "Interpretting hook for $event: " . $cmd->str() . "\n";
         $cmd->execute($self);
     }
+}
+
+my %EVENTS;
+
+sub add_event
+{
+    my $event = shift;
+    $EVENTS{$event} = 1;
+}
+
+sub is_event
+{
+    my $event = shift;
+    return $EVENTS{$event};
 }
 
 1;

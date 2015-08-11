@@ -5,6 +5,7 @@ use warnings;
 
 use Amling::Git::GRD::Command::Simple;
 use Amling::Git::GRD::Command;
+use Amling::Git::GRD::Exec::Context;
 use Amling::Git::Utils;
 
 use base 'Amling::Git::GRD::Command::Simple';
@@ -30,5 +31,6 @@ sub execute_simple
 }
 
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
+Amling::Git::GRD::Exec::Context::add_event('pre-branch');
 
 1;

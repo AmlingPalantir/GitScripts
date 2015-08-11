@@ -6,6 +6,7 @@ use warnings;
 use Amling::Git::GRD::Command::Load;
 use Amling::Git::GRD::Command::Simple;
 use Amling::Git::GRD::Command;
+use Amling::Git::GRD::Exec::Context;
 use Amling::Git::GRD::Utils;
 use Amling::Git::Utils;
 
@@ -54,5 +55,6 @@ sub execute_simple
 }
 
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
+Amling::Git::GRD::Exec::Context::add_event('post-merge');
 
 1;

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Amling::Git::GRD::Command;
+use Amling::Git::GRD::Exec::Context;
 use Amling::Git::GRD::Utils;
 use Amling::Git::Utils;
 
@@ -18,6 +19,11 @@ sub handler
         $cmd_str = $2;
     }
     else
+    {
+        return undef;
+    }
+
+    if(!Amling::Git::GRD::Exec::Context::is_event($event))
     {
         return undef;
     }
