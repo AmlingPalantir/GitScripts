@@ -17,32 +17,8 @@ my $time = strftime('%Y%m%d-%H%M%S', localtime(time()));
 
 if(@ARGV)
 {
-    # so rage...
-    {
-        open(my $fh, '-|', 'git', 'symbolic-ref', '-q', 'HEAD') || die "Could not open git symbolic-ref -q HEAD: $!";
-        my @l;
-        while(my $l = <$fh>)
-        {
-            chomp $l;
-            push @l, $l;
-        }
-        if(close($fh))
-        {
-            die unless(@l == 1);
-            my $head = $l[0];
-            if(grep { "refs/heads/$_" eq $head } (@ARGV))
-            {
-                run('git', 'checkout', 'HEAD~0');
-            }
-        }
-        else
-        {
-            die if(@l);
-        }
-    }
-
     run('git', 'push', "$root/.git/archive-repo", (map { "$_:$time--$_" } @ARGV));
-    run('git', 'branch', '-D', @ARGV);
+    run('destroy-branches', @ARGV);
 }
 
 sub run
