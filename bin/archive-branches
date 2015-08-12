@@ -17,11 +17,38 @@ my $time = strftime('%Y%m%d-%H%M%S', localtime(time()));
 
 if(@ARGV)
 {
-    my @push = ("git", "push", "$root/.git/archive-repo", (map { "$_:$time--$_" } @ARGV));
-    print "Running: (" . join(" ", map { "'$_'" } @push) . ")...\n";
-    (system(@push) == 0) || die "Could not push: $!";
+    # so rage...
+    {
+        open(my $fh, '-|', 'git', 'symbolic-ref', '-q', 'HEAD') || die "Could not open git symbolic-ref -q HEAD: $!";
+        my @l;
+        while(my $l = <$fh>)
+        {
+            chomp $l;
+            push @l, $l;
+        }
+        if(close($fh))
+        {
+            die unless(@l == 1);
+            my $head = $l[0];
+            if(grep { "refs/heads/$_" eq $head } (@ARGV))
+            {
+                run('git', 'checkout', 'HEAD~0');
+            }
+        }
+        else
+        {
+            die if(@l);
+        }
+    }
 
-    my @del = ("git", "branch", "-D", @ARGV);
-    print "Running: (" . join(" ", map { "'$_'" } @del) . ")...\n";
-    (system(@del) == 0) || die "Could not delete: $!";
+    run('git', 'push', "$root/.git/archive-repo", (map { "$_:$time--$_" } @ARGV));
+    run('git', 'branch', '-D', @ARGV);
+}
+
+sub run
+{
+    my @cmd = @_;
+    my $cmd = join(' ', @cmd);
+    print "Running: $cmd...\n";
+    (system(@cmd) == 0) || die "Could not system $cmd: $!";
 }
