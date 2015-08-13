@@ -45,10 +45,22 @@ GRD DL
     >     ]),
     >     sub {
     >         if($g->head()->{'subj'} =~ ...) {
-    >             $g->run([
-    >                 $g->pick('...'),
+    >             $g->run([              # actually runs it
+    >                 $g->pick('...'),   # only creates a pick object
     >             ]);
     >         }
     >     },
     > ];
     Unfortunately it's pretty damned verbose and still obtuse
+    Maybe mixed?
+    > pick abcdef # ...
+    > edit
+    > push
+    > pick ...
+    > pick ...
+    > splatter
+    > <% # evaluated as sub { my $g = shift; ... } at parse time
+    >     if(...) {
+    >         $g->pick('...'); # actually runs pick since pick object has little to no point here
+    >     }
+    > %>
