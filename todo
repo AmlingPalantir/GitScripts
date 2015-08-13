@@ -64,3 +64,16 @@ GRD DL
     >         $g->pick('...'); # actually runs pick since pick object has little to no point here
     >     }
     > %>
+    Change parser to read-ahead lines, hooks-add parser has to trim first line when recursively parsing, e.g.
+    > hooks-add post-pick perl
+    > if($g->head()->subj() =~ /TODO/) {
+    >     $g->edit();
+    > }
+    > /perl
+    Still have to jackass up registry of $g methods from commands
+        $g->eval("edit") probably suffices
+    $g library
+        ->eval(@lines) # runs GRD script, super crash on parse error
+        ->head() # returns HEAD commit as convenience
+        ->commit($commitlike) # returns commit as convenience (e.g.  "HEAD^")
+        ->context() # GRD context because why not
