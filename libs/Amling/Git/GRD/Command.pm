@@ -39,6 +39,7 @@ use Amling::Git::GRD::Command::HooksPop;
 use Amling::Git::GRD::Command::HooksPush;
 use Amling::Git::GRD::Command::Load;
 use Amling::Git::GRD::Command::Merge;
+use Amling::Git::GRD::Command::Perl;
 use Amling::Git::GRD::Command::Pick;
 use Amling::Git::GRD::Command::Pop;
 use Amling::Git::GRD::Command::Push;
