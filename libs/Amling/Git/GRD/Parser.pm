@@ -14,7 +14,7 @@ sub edit_loop
 
     while(1)
     {
-        my ($commands, $problems) = parse($lines);
+        my ($commands, $problem) = parse($lines);
         if($skip_edit && $commands)
         {
             return $commands;
@@ -23,14 +23,10 @@ sub edit_loop
 
         my ($fh, $fn) = tempfile('SUFFIX' => '.grd');
 
-        if(@$problems)
+        if(!$commands)
         {
             print $fh "# NOTE: This script does not parse, please correct the errors:\n";
-            for my $problem (@$problems)
-            {
-                print $fh "# NOTE: $problem\n";
-            }
-            print $fh "\n";
+            print $fh "# NOTE: $problem\n";
         }
 
         while(@$lines && @$lines[0] =~ /^# NOTE: /)
@@ -69,7 +65,6 @@ sub parse
     my $lines = shift;
 
     my $commands = [];
-    my $problems = [];
 
     $lines = [@$lines];
     while(@$lines)
@@ -88,16 +83,11 @@ sub parse
         }
         else
         {
-            push @$problems, "Unintelligible at: $line";
+            return (undef, "Unintelligible at: $line");
         }
     }
 
-    if(@$problems)
-    {
-        $commands = undef;
-    }
-
-    return ($commands, $problems);
+    return $commands;
 }
 
 1;
