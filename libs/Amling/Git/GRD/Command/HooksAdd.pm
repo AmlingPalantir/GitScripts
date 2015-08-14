@@ -13,27 +13,19 @@ sub handler
     my $s0 = shift;
     my $s1 = shift;
 
-    my ($event, $cmd_str);
-    if($s0 =~ /^hooks-add ([^ ]+) (.*)$/)
-    {
-        $event = $1;
-        $cmd_str = $2;
-    }
-    else
+    if($s0 !~ /^hooks-add ([^ ]+) (.*)$/)
     {
         return undef;
     }
+    my $event = $1;
+    my $cmd_str = $2;
 
     if(!Amling::Git::GRD::Exec::Context::is_event($event))
     {
-        return undef;
+        die "Not a valid hook: $event";
     }
 
     my $parse = Amling::Git::GRD::Command::parse($cmd_str, $s1);
-    if(!defined($parse))
-    {
-        return undef;
-    }
     my $cmd = $parse->[0];
     $s1 = $parse->[1];
 

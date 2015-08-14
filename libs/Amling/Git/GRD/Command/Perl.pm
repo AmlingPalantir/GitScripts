@@ -26,16 +26,14 @@ sub handler
             my $sub = eval join("\n", 'sub {', 'my $g = shift;', @code, '}');
             if($@)
             {
-                warn $@;
-                # TODO: surface known errors, here and elsewhere
-                return undef;
+                die "Could not parse perl: $@";
             }
             return [__PACKAGE__->new($sub), $s1_new];
         }
         push @code, $line;
     }
 
-    return undef;
+    die "No /perl?";
 }
 
 sub new

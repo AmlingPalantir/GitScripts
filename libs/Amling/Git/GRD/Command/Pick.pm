@@ -18,23 +18,20 @@ sub extended_handler
     my $s0 = shift;
     my $s1 = shift;
 
-    my ($commit, $msg);
-    if($s0 =~ /^pick ([^ ]+) (.*)$/)
+    if($s0 !~ /^pick ([^ ]+) (.*)$/)
     {
-        $commit = $1;
-        $msg = $2;
-        if($msg =~ /^#/)
-        {
-            $msg = undef;
-        }
-        else
-        {
-            $msg = Amling::Git::GRD::Utils::unescape_msg($msg);
-        }
+        return undef;
+    }
+    my $commit = $1;
+    my $msg = $2;
+
+    if($msg =~ /^#/)
+    {
+        $msg = undef;
     }
     else
     {
-        return undef;
+        $msg = Amling::Git::GRD::Utils::unescape_msg($msg);
     }
 
     return [__PACKAGE__->new($commit, $msg), $s1];
@@ -122,8 +119,8 @@ sub str_simple
     return "pick $commit" . (defined($msg) ? " (amended message)" : "");
 }
 
-Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
 Amling::Git::GRD::Command::add_command(\&extended_handler);
+Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
 Amling::Git::GRD::Exec::Context::add_event('post-pick');
 
 1;

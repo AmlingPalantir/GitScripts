@@ -14,7 +14,7 @@ sub edit_loop
 
     while(1)
     {
-        my ($commands, $problem) = parse($lines);
+        my ($commands, $problems) = parse($lines);
         if($skip_edit && $commands)
         {
             return $commands;
@@ -26,7 +26,11 @@ sub edit_loop
         if(!$commands)
         {
             print $fh "# NOTE: This script does not parse, please correct the errors:\n";
-            print $fh "# NOTE: $problem\n";
+            for my $problem (@$problems)
+            {
+                print $fh "# NOTE: $problem\n";
+            }
+            print $fh "\n";
         }
 
         while(@$lines && @$lines[0] =~ /^# NOTE: /)
@@ -74,17 +78,14 @@ sub parse
         next if($line eq '');
         next if($line =~ /^#/);
 
-        my $parse = Amling::Git::GRD::Command::parse($line, $lines);
+        my $parse = eval { Amling::Git::GRD::Command::parse($line, $lines) };
+        if($@)
+        {
+            return (undef, ["Parse failed at: $line", split(/\n/, $@)]);
+        }
 
-        if(defined($parse))
-        {
-            push @$commands, $parse->[0];
-            $lines = $parse->[1];
-        }
-        else
-        {
-            return (undef, "Unintelligible at: $line");
-        }
+        push @$commands, $parse->[0];
+        $lines = $parse->[1];
     }
 
     return $commands;

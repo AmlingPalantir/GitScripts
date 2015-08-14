@@ -14,9 +14,12 @@ sub add_command
 
 sub parse
 {
+    my $s0 = shift;
+    my $s1 = shift;
+
     for my $handler (@handlers)
     {
-        my $ret = $handler->(@_);
+        my $ret = $handler->($s0, $s1);
 
         if(defined($ret))
         {
@@ -24,7 +27,7 @@ sub parse
         }
     }
 
-    return undef;
+    die "Unintelligible command at: $s0";
 }
 
 use Amling::Git::GRD::Command::Branch;

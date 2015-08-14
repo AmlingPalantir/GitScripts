@@ -11,20 +11,20 @@ sub handler
 
     my @s0 = split(/ /, $s0);
 
-    if(defined($class->min_args()) && @s0 < 1 + $class->min_args())
-    {
-        return undef;
-    }
-
-    if(defined($class->max_args()) && @s0 > 1 + $class->max_args())
-    {
-        return undef;
-    }
-
     my $s00 = shift @s0;
     if($s00 ne $class->name())
     {
         return undef;
+    }
+
+    if(defined($class->min_args()) && @s0 < $class->min_args())
+    {
+        die "Not enough arguments for $s00";
+    }
+
+    if(defined($class->max_args()) && @s0 > $class->max_args())
+    {
+        die "Too many arguments for $s00";
     }
 
     return [$class->new(@s0), $s1];

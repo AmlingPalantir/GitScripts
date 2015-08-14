@@ -14,15 +14,11 @@ sub extended_handler
     my $s0 = shift;
     my $s1 = shift;
 
-    my $cmd;
-    if($s0 =~ /^shell (.+)$/)
-    {
-        $cmd = $1;
-    }
-    else
+    if($s0 !~ /^shell (.+)$/)
     {
         return undef;
     }
+    my $cmd = $1;
 
     return [__PACKAGE__->new($cmd), $s1];
 }
@@ -62,7 +58,7 @@ sub execute_simple
     $ctx->uptake_head();
 }
 
-Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
 Amling::Git::GRD::Command::add_command(\&extended_handler);
+Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
 
 1;
