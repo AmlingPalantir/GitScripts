@@ -15,20 +15,29 @@ use base 'Amling::Git::GRD::Command::Simple';
 
 sub extended_handler
 {
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
     my ($commit, $msg);
-    if($s =~ /^pick ([^ ]+) (.*)$/)
+    if($s0 =~ /^pick ([^ ]+) (.*)$/)
     {
         $commit = $1;
         $msg = $2;
+        if($msg =~ /^#/)
+        {
+            $msg = undef;
+        }
+        else
+        {
+            $msg = Amling::Git::GRD::Utils::unescape_msg($msg);
+        }
     }
     else
     {
         return undef;
     }
 
-    return __PACKAGE__->new($commit, Amling::Git::GRD::Utils::unescape_msg($msg));
+    return [__PACKAGE__->new($commit, $msg), $s1];
 }
 
 sub name

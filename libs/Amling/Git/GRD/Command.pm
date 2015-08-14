@@ -14,11 +14,9 @@ sub add_command
 
 sub parse
 {
-    my $s = shift;
-
     for my $handler (@handlers)
     {
-        my $ret = $handler->($s);
+        my $ret = $handler->(@_);
 
         if(defined($ret))
         {

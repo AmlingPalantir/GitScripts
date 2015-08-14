@@ -10,10 +10,11 @@ use Amling::Git::Utils;
 
 sub handler
 {
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
     my ($event, $cmd_str);
-    if($s =~ /^hooks-add ([^ ]+) (.*)$/)
+    if($s0 =~ /^hooks-add ([^ ]+) (.*)$/)
     {
         $event = $1;
         $cmd_str = $2;
@@ -28,13 +29,15 @@ sub handler
         return undef;
     }
 
-    my $cmd = Amling::Git::GRD::Command::parse($cmd_str);
-    if(!defined($cmd))
+    my $parse = Amling::Git::GRD::Command::parse($cmd_str, $s1);
+    if(!defined($parse))
     {
         return undef;
     }
+    my $cmd = $parse->[0];
+    $s1 = $parse->[1];
 
-    return __PACKAGE__->new($event, $cmd);
+    return [__PACKAGE__->new($event, $cmd), $s1];
 }
 
 sub new

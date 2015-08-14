@@ -14,10 +14,11 @@ use base 'Amling::Git::GRD::Command::Simple';
 
 sub extended_handler
 {
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
     my ($commit, $msg);
-    if($s =~ /^fixup ([^ ]+) ([^ ].*)$/)
+    if($s0 =~ /^fixup ([^ ]+) ([^ ].*)$/)
     {
         $commit = $1;
         $msg = $2;
@@ -27,7 +28,7 @@ sub extended_handler
         return undef;
     }
 
-    return __PACKAGE__->new($commit, Amling::Git::GRD::Utils::unescape_msg($msg));
+    return [__PACKAGE__->new($commit, Amling::Git::GRD::Utils::unescape_msg($msg)), $s1];
 }
 
 sub name

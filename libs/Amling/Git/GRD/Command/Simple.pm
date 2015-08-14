@@ -6,27 +6,28 @@ use warnings;
 sub handler
 {
     my $class = shift;
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
-    my @s = split(/ /, $s);
+    my @s0 = split(/ /, $s0);
 
-    if(defined($class->min_args()) && @s < 1 + $class->min_args())
+    if(defined($class->min_args()) && @s0 < 1 + $class->min_args())
     {
         return undef;
     }
 
-    if(defined($class->max_args()) && @s > 1 + $class->max_args())
+    if(defined($class->max_args()) && @s0 > 1 + $class->max_args())
     {
         return undef;
     }
 
-    my $s0 = shift @s;
-    if($s0 ne $class->name())
+    my $s00 = shift @s0;
+    if($s00 ne $class->name())
     {
         return undef;
     }
 
-    return $class->new(@s);
+    return [$class->new(@s0), $s1];
 }
 
 sub new

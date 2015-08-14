@@ -13,10 +13,11 @@ use base 'Amling::Git::GRD::Command::Simple';
 
 sub extended_handler
 {
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
     my $msg;
-    if($s =~ /^splatter (.*)$/)
+    if($s0 =~ /^splatter (.*)$/)
     {
         $msg = $1;
     }
@@ -25,7 +26,7 @@ sub extended_handler
         return undef;
     }
 
-    return __PACKAGE__->new(Amling::Git::GRD::Utils::unescape_msg($msg));
+    return [__PACKAGE__->new(Amling::Git::GRD::Utils::unescape_msg($msg)), $s1];
 }
 
 sub name

@@ -71,25 +71,24 @@ sub parse
     my $commands = [];
     my $problems = [];
 
-    for my $_line (@$lines)
+    $lines = [@$lines];
+    while(@$lines)
     {
-        my $line = $_line;
-
-        $line =~ s/#.*$//;
-        $line =~ s/^ *//;
-        $line =~ s/ *$//;
+        my $line = shift @$lines;
 
         next if($line eq '');
+        next if($line =~ /^#/);
 
-        my $command = Amling::Git::GRD::Command::parse($line);
+        my $parse = Amling::Git::GRD::Command::parse($line, $lines);
 
-        if(defined($command))
+        if(defined($parse))
         {
-            push @$commands, $command;
+            push @$commands, $parse->[0];
+            $lines = $parse->[1];
         }
         else
         {
-            push @$problems, "Unintelligible line: $line";
+            push @$problems, "Unintelligible at: $line";
         }
     }
 
