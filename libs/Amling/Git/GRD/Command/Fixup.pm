@@ -22,9 +22,9 @@ sub extended_handler
         return undef;
     }
     my $commit = $1;
-    my $msg = $2;
+    my $msg = Amling::Git::GRD::Command::Pick::munge_message($2);
 
-    return [__PACKAGE__->new($commit, Amling::Git::GRD::Utils::unescape_msg($msg)), $s1];
+    return [__PACKAGE__->new($commit, $msg), $s1];
 }
 
 sub name

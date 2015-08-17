@@ -23,18 +23,19 @@ sub extended_handler
         return undef;
     }
     my $commit = $1;
-    my $msg = $2;
-
-    if($msg =~ /^#/)
-    {
-        $msg = undef;
-    }
-    else
-    {
-        $msg = Amling::Git::GRD::Utils::unescape_msg($msg);
-    }
+    my $msg = munge_message($2);
 
     return [__PACKAGE__->new($commit, $msg), $s1];
+}
+
+sub munge_message
+{
+    my $msg = shift;
+    if($msg =~ /^#/)
+    {
+        return undef;
+    }
+    return Amling::Git::GRD::Utils::unescape_msg($msg);
 }
 
 sub name
