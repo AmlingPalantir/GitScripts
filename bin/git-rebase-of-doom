@@ -266,6 +266,22 @@ cached-merge <template> (tag:<tag> | <commitlike>)+
     As merge but if <template> has the exact same parents reuse it directly
     rather than repeating the merge.
 
+perl
+<perl code>
+/perl
+    Evaluate arbitrary perl code (at that point in the script).  \$g is set to
+    a helper object with some handy methods.  This is arcane enough that you
+    should probably read the code if you want to use this feature.  Simple
+    examples:
+
+    # Run a shell on any commit whose message matches /TODO/
+    hooks-add post-pick perl
+    if(\$g->head()->subj() =~ /TODO/)
+    {
+        \$g->eval("edit");
+    }
+    /perl
+
 pick <commitlike> [<message>]
     Cherry-pick a commit, then optionally alter its message (without
     interaction).
