@@ -14,11 +14,12 @@ sub add_command
 
 sub parse
 {
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
     for my $handler (@handlers)
     {
-        my $ret = $handler->($s);
+        my $ret = $handler->($s0, $s1);
 
         if(defined($ret))
         {
@@ -26,7 +27,7 @@ sub parse
         }
     }
 
-    return undef;
+    die "Unintelligible command at: $s0";
 }
 
 use Amling::Git::GRD::Command::Branch;
@@ -41,6 +42,7 @@ use Amling::Git::GRD::Command::HooksPop;
 use Amling::Git::GRD::Command::HooksPush;
 use Amling::Git::GRD::Command::Load;
 use Amling::Git::GRD::Command::Merge;
+use Amling::Git::GRD::Command::Perl;
 use Amling::Git::GRD::Command::Pick;
 use Amling::Git::GRD::Command::Pop;
 use Amling::Git::GRD::Command::Push;

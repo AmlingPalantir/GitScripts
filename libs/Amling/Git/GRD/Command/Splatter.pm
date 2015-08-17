@@ -13,19 +13,16 @@ use base 'Amling::Git::GRD::Command::Simple';
 
 sub extended_handler
 {
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
-    my $msg;
-    if($s =~ /^splatter (.*)$/)
-    {
-        $msg = $1;
-    }
-    else
+    if($s0 !~ /^splatter (.*)$/)
     {
         return undef;
     }
+    my $msg = $1;
 
-    return __PACKAGE__->new(Amling::Git::GRD::Utils::unescape_msg($msg));
+    return [__PACKAGE__->new(Amling::Git::GRD::Utils::unescape_msg($msg)), $s1];
 }
 
 sub name
@@ -97,7 +94,7 @@ sub str_simple
     return "splatter" . (defined($msg) ? " (amended message)" : "");
 }
 
-Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
 Amling::Git::GRD::Command::add_command(\&extended_handler);
+Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
 
 1;

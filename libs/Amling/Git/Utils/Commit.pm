@@ -126,4 +126,22 @@ sub count_files
     return scalar(grep { $_ =~ $re } @{$this->{'files'}});
 }
 
+our $AUTOLOAD;
+
+sub DESTROY
+{
+}
+
+sub AUTOLOAD
+{
+    my $self = shift;
+    my $name = $AUTOLOAD;
+    $name =~ s/^.*://;
+    if(@_ == 0 && exists($self->{$name}))
+    {
+        return $self->{$name};
+    }
+    die "No such method $name for " . __PACKAGE__ . "\n";
+}
+
 1;

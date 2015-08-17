@@ -23,7 +23,7 @@ sub edit_loop
 
         my ($fh, $fn) = tempfile('SUFFIX' => '.grd');
 
-        if(@$problems)
+        if(!$commands)
         {
             print $fh "# NOTE: This script does not parse, please correct the errors:\n";
             for my $problem (@$problems)
@@ -69,36 +69,26 @@ sub parse
     my $lines = shift;
 
     my $commands = [];
-    my $problems = [];
 
-    for my $_line (@$lines)
+    $lines = [@$lines];
+    while(@$lines)
     {
-        my $line = $_line;
-
-        $line =~ s/#.*$//;
-        $line =~ s/^ *//;
-        $line =~ s/ *$//;
+        my $line = shift @$lines;
 
         next if($line eq '');
+        next if($line =~ /^#/);
 
-        my $command = Amling::Git::GRD::Command::parse($line);
+        my $parse = eval { Amling::Git::GRD::Command::parse($line, $lines) };
+        if($@)
+        {
+            return (undef, ["Parse failed at: $line", split(/\n/, $@)]);
+        }
 
-        if(defined($command))
-        {
-            push @$commands, $command;
-        }
-        else
-        {
-            push @$problems, "Unintelligible line: $line";
-        }
+        push @$commands, $parse->[0];
+        $lines = $parse->[1];
     }
 
-    if(@$problems)
-    {
-        $commands = undef;
-    }
-
-    return ($commands, $problems);
+    return $commands;
 }
 
 1;

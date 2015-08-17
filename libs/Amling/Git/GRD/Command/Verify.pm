@@ -11,19 +11,16 @@ use base 'Amling::Git::GRD::Command::Simple';
 
 sub extended_handler
 {
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
-    my $cmd;
-    if($s =~ /^verify (.+)$/)
-    {
-        $cmd = $1;
-    }
-    else
+    if($s0 !~ /^verify (.+)$/)
     {
         return undef;
     }
+    my $cmd = $1;
 
-    return __PACKAGE__->new($cmd);
+    return [__PACKAGE__->new($cmd), $s1];
 }
 
 sub name

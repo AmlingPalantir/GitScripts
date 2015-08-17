@@ -45,6 +45,9 @@ my @options =
     "skip-edit|q!" => \$skip_edit,
     "dry-run|n!" => \$dry_run,
     "help!" => sub { usage(0); },
+    "help-language!" => \&usage_language,
+    "help-reference!" => \&usage_reference,
+    "help-arcana!" => \&usage_arcana,
 );
 
 my $reason = join(" ", "GRD", @ARGV);
@@ -164,6 +167,9 @@ Usage: git-rebase-of-doom <options> [<extra arguments>]
    --dry-run | -n                Just print the generated script, don't
                                  actually do anything.
    --help                        Print this help.
+   --help-language               Print script language intro
+   --help-reference              Print script language reference
+   --help-arcana                 Print insane feature "documentation"
 
 Extra arguments are handled as follows:
 
@@ -193,7 +199,14 @@ git-rebase-of-doom --onto elsewhere master feature
 # Rebase feature up to the tip of master but exclude commits from dev as well.
 git-rebase-of-doom master --minus dev feature
 git-rebase-of-doom --onto master --minus dev --head feature
+EOF
 
+    exit $ec;
+}
+
+sub usage_language
+{
+    print <<EOF;
 The "language" the generated script is composed of is similar to normal rebase
 but has some key differences.  Rebase commands can be translated as follows:
 
@@ -209,7 +222,15 @@ the rebase script itself.
 "edit" - Replace "edit <commit>" with "pick <commit>" plus "edit" and you'll
 get a shell invoked by GRD rather than it exiting and expecting --continue.
 
-A more complete reference follows:
+See --help-reference for a less incomplete list.
+EOF
+    exit 0;
+}
+
+sub usage_reference
+{
+    print <<EOF;
+Language commands which are relatively stable and reasonable for general use:
 
 branch <name>
     Save HEAD's current position as a branch when the rebase completes.
@@ -240,20 +261,6 @@ head <name>
     Save HEAD's current position as a branch when the rebase completes and set
     HEAD to that branch (again, when the rebase completes).  Existing branches
     are clobbered silently.
-
-hooks-add <event> <command>
-    Add a command on certain events.  These are arcane enough that you should
-    probably read the code if you want to use this feature.  Simple examples:
-
-    # Run a verify after picking a commit
-    hooks-add post-pick verify ...
-
-    # Run a verify before saving off a branch
-    hooks-add pre-branch verify ...
-
-hooks-push
-hooks-pop
-    Manage the "hooks stack".  Pop will undo all changes back to the last push.
 
 load (tag:<tag> | <commitlike>)
     Move HEAD to a saved tag or a commitlike.
@@ -302,7 +309,46 @@ verify <command>
     Run specified shell command, and drop into an interactive shell if it
     fails.  The verify command is not rerun after the interactive shell so if
     you want to ensure it passes run it [again] yourself.
-EOF
 
-    exit $ec;
+See --help-arcana for more insane options
+EOF
+    exit 0;
+}
+
+sub usage_arcana
+{
+print <<EOF;
+Things too insane and/or unready to go into general use.  Anyone digging in
+here should probably be ready to either read the code or to copy recipes from
+the bottom.
+
+HOOKS
+
+A primitive hooks system allows executing specified commands every time a type
+of event occurs.  Generally `hooks-add <event> <command>`.  `hooks-push` and
+`hooks-pop` manages the "hooks stack" where pop undoes all changes back to the
+last push.
+
+EVALABLE PERL
+
+Arbitrary perl can be embedded into the script with `perl` and `/perl`.  \$g is
+set to a helper object with some handy methods.
+
+RECIPES
+    # Run a verify after picking each commit
+    hooks-add post-pick verify ./gradlew check
+
+    # Run a verify before saving off each branch
+    hooks-add pre-branch verify ./gradlew check
+
+    # Run a shell after picking any commit whose message matches /TODO/
+    hooks-add post-pick perl
+    if(\$g->head()->subj() =~ /TODO/)
+    {
+        print "TODO found, please fix it!\\n";
+        \$g->eval("edit");
+    }
+    /perl
+EOF
+    exit 0;
 }

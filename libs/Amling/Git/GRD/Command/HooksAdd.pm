@@ -10,31 +10,26 @@ use Amling::Git::Utils;
 
 sub handler
 {
-    my $s = shift;
+    my $s0 = shift;
+    my $s1 = shift;
 
-    my ($event, $cmd_str);
-    if($s =~ /^hooks-add ([^ ]+) (.*)$/)
-    {
-        $event = $1;
-        $cmd_str = $2;
-    }
-    else
+    if($s0 !~ /^hooks-add ([^ ]+) (.*)$/)
     {
         return undef;
     }
+    my $event = $1;
+    my $cmd_str = $2;
 
     if(!Amling::Git::GRD::Exec::Context::is_event($event))
     {
-        return undef;
+        die "Not a valid hook: $event";
     }
 
-    my $cmd = Amling::Git::GRD::Command::parse($cmd_str);
-    if(!defined($cmd))
-    {
-        return undef;
-    }
+    my $parse = Amling::Git::GRD::Command::parse($cmd_str, $s1);
+    my $cmd = $parse->[0];
+    $s1 = $parse->[1];
 
-    return __PACKAGE__->new($event, $cmd);
+    return [__PACKAGE__->new($event, $cmd), $s1];
 }
 
 sub new
