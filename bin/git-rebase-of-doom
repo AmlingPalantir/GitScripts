@@ -241,6 +241,20 @@ head <name>
     HEAD to that branch (again, when the rebase completes).  Existing branches
     are clobbered silently.
 
+hooks-add <event> <command>
+    Add a command on certain events.  These are arcane enough that you should
+    probably read the code if you want to use this feature.  Simple examples:
+
+    # Run a verify after picking a commit
+    hooks-add post-pick verify ...
+
+    # Run a verify before saving off a branch
+    hooks-add pre-branch verify ...
+
+hooks-push
+hooks-pop
+    Manage the "hooks stack".  Pop will undo all changes back to the last push.
+
 load (tag:<tag> | <commitlike>)
     Move HEAD to a saved tag or a commitlike.
 
