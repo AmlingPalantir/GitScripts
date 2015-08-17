@@ -310,7 +310,7 @@ verify <command>
     fails.  The verify command is not rerun after the interactive shell so if
     you want to ensure it passes run it [again] yourself.
 
-See --help-arcana for more insane options
+See --help-arcana for more insane options.
 EOF
     exit 0;
 }
