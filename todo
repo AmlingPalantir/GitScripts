@@ -30,6 +30,24 @@ GBD
         only difference is if we get to bad with "presumed good" parents we have to test them
             if one of them tests bad we work from there again
             if all of them test good we're done
+    parallel automated bisect
+        again, unclear if this is part of GBD or own tool
+        another possibility here is your run script produces a collection of failures
+        by end of run it needs to be the case that every known (commit, failure) pair has an originating ancestor
+            originating ancestor is an ancestor that has the failure all of whose ancestors do not
+        err, maybe the weaker requirement that every observed failure has an originating point
+            this is more similar to what bisect does right now
+        or even weaker, that every observed failure in the tip commit has an originating ancestor
+            then we just give:
+                a tip commit
+                a script to produce failure list
+                an "assume good" ancestor (to avoid checking all of history)
+                    or maybe we insist your script should check being an ancestor?
+                        uh, in parallel bisect you don't even git a repo, you just get a WT
+    maybe GBD needs to be split into state library plus
+        vanilla GBD frontend (manual, single WT, as current GBD)
+        probabilistic bisect
+        parallel external WT bisect
 github pull requester
     worked: curl -n -d '{"title":"Please pull upstream/20110915-typo-fix","base":"8e90ecf3b8edae14b1b34663a7e0298040bf6435","head":"5a9814923942b2099862aa6503c8af8bd7b3e7d9"}' 'https://api.github.com/repos/benbernard/RecordStream/pulls'
     also worked: curl -n -d '{"title":"Please pull upstream/20110915-other-doc","base":"benbernard:master","head":"amling:upstream/20110915-other-doc"}' 'https://api.github.com/repos/benbernard/RecordStream/pulls'
