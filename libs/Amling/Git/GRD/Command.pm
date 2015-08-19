@@ -31,12 +31,11 @@ sub parse
 }
 
 use Amling::Git::GRD::Command::Branch;
-use Amling::Git::GRD::Command::BranchHead;
 use Amling::Git::GRD::Command::CachedMerge;
-use Amling::Git::GRD::Command::DetachedHead;
 use Amling::Git::GRD::Command::Edit;
 use Amling::Git::GRD::Command::FSplatter;
 use Amling::Git::GRD::Command::Fixup;
+use Amling::Git::GRD::Command::Head;
 use Amling::Git::GRD::Command::HooksAdd;
 use Amling::Git::GRD::Command::HooksPop;
 use Amling::Git::GRD::Command::HooksPush;

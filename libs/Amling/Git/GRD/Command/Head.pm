@@ -1,4 +1,4 @@
-package Amling::Git::GRD::Command::BranchHead;
+package Amling::Git::GRD::Command::Head;
 
 use strict;
 use warnings;
@@ -15,7 +15,12 @@ sub name
     return "head";
 }
 
-sub args
+sub min_args
+{
+    return 0;
+}
+
+sub max_args
 {
     return 1;
 }
@@ -26,9 +31,16 @@ sub execute_simple
     my $ctx = shift;
     my $branch = shift;
 
-    $ctx->run_hooks('pre-branch', 'BRANCH' => $branch);
-    $ctx->get('branches', {})->{$branch} = $ctx->get_head();
-    $ctx->set('head', [1, $branch]);
+    if(defined($branch))
+    {
+        $ctx->run_hooks('pre-branch', 'BRANCH' => $branch);
+        $ctx->get('branches', {})->{$branch} = $ctx->get_head();
+        $ctx->set('head', [1, $branch]);
+    }
+    else
+    {
+        $ctx->set('head', [0, $ctx->get_head()]);
+    }
 }
 
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
