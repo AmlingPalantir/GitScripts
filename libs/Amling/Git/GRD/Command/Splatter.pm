@@ -94,7 +94,7 @@ sub str_simple
     return "splatter" . (defined($msg) ? " (amended message)" : "");
 }
 
-Amling::Git::GRD::Command::add_command(\&extended_handler);
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
+Amling::Git::GRD::Command::add_command(\&extended_handler);
 
 1;

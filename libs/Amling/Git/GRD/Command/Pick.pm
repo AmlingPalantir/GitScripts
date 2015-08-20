@@ -23,19 +23,9 @@ sub extended_handler
         return undef;
     }
     my $commit = $1;
-    my $msg = munge_message($2);
+    my $msg = Amling::Git::GRD::Utils::unescape_msg($2);
 
     return [__PACKAGE__->new($commit, $msg), $s1];
-}
-
-sub munge_message
-{
-    my $msg = shift;
-    if($msg =~ /^#/)
-    {
-        return undef;
-    }
-    return Amling::Git::GRD::Utils::unescape_msg($msg);
 }
 
 sub name
@@ -120,8 +110,8 @@ sub str_simple
     return "pick $commit" . (defined($msg) ? " (amended message)" : "");
 }
 
-Amling::Git::GRD::Command::add_command(\&extended_handler);
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
+Amling::Git::GRD::Command::add_command(\&extended_handler);
 Amling::Git::GRD::Exec::Context::add_event('post-pick');
 
 1;

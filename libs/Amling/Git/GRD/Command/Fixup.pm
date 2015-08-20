@@ -22,7 +22,7 @@ sub extended_handler
         return undef;
     }
     my $commit = $1;
-    my $msg = Amling::Git::GRD::Command::Pick::munge_message($2);
+    my $msg = Amling::Git::GRD::Utils::unescape_msg($2);
 
     return [__PACKAGE__->new($commit, $msg), $s1];
 }
@@ -73,7 +73,7 @@ sub str_simple
     return "fixup $commit" . (defined($msg) ? " (amended message)" : "");
 }
 
-Amling::Git::GRD::Command::add_command(\&extended_handler);
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
+Amling::Git::GRD::Command::add_command(\&extended_handler);
 
 1;

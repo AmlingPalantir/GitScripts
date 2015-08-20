@@ -9,6 +9,7 @@ sub handler
     my $s0 = shift;
     my $s1 = shift;
 
+    $s0 =~ s/\#.*$//;
     my @s0 = split(/ /, $s0);
 
     my $s00 = shift @s0;
