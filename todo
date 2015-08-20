@@ -55,6 +55,8 @@ GBD
                 actually, no
                 this is exactly doing a regular bisect and then hammering the parents (and if they break repeating from there)
                 this does horribly in the case of linear history and a low probability failure
+                we could instead weight with MLE (requires estimate of probability which I guess we could jackass up from samples that are "after" a known bad)
+                ah, and now weight kind of makes sense again (weight with user weight times MLE)
             unclear how weight is relevant here
                 maybe maximize (likelihood * weight) instead...
                 this is sort of weird because weight is forced to interact with likelihood multiplicatively
