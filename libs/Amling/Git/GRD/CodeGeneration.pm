@@ -242,10 +242,6 @@ sub generate
     {
         my $commit = Amling::Git::Utils::convert_commitlike($plus_option);
         my $command = [$plus_option, "# (?) branch $plus_option"];
-        if($plus_option eq 'HEAD')
-        {
-            next;
-        }
         push @{$commit_commands->{$commit} ||= []}, $command;
     }
 
