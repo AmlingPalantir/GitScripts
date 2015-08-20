@@ -48,6 +48,20 @@ GBD
         vanilla GBD frontend (manual, single WT, as current GBD)
         probabilistic bisect
         parallel external WT bisect
+        vanilla and parallel are both addressed by set-good, set-bad, and find-test-point (parallel speculates)
+        probabilistic needs something else though
+            we sort of want to track an earliest known bad and what goods have happened earlier than that
+            we can probably get away with running brute-force MLE for bad commit
+                actually, no
+                this is exactly doing a regular bisect and then hammering the parents (and if they break repeating from there)
+                this does horribly in the case of linear history and a low probability failure
+            unclear how weight is relevant here
+                maybe maximize (likelihood * weight) instead...
+                this is sort of weird because weight is forced to interact with likelihood multiplicatively
+                it means you're going to test the shit out of high weights and wait a long, long time before anyone else becomes likely enough to counter
+                I think weight just may be a bad idea here
+            yeah, I think this doesn't share any data structure code
+            in addition probabilistic sort of wants to parallelize as well...
 github pull requester
     worked: curl -n -d '{"title":"Please pull upstream/20110915-typo-fix","base":"8e90ecf3b8edae14b1b34663a7e0298040bf6435","head":"5a9814923942b2099862aa6503c8af8bd7b3e7d9"}' 'https://api.github.com/repos/benbernard/RecordStream/pulls'
     also worked: curl -n -d '{"title":"Please pull upstream/20110915-other-doc","base":"benbernard:master","head":"amling:upstream/20110915-other-doc"}' 'https://api.github.com/repos/benbernard/RecordStream/pulls'
