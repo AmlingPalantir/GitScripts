@@ -58,6 +58,11 @@ GBD
                 we could instead weight with maximum likelihood (maximized over probability of failure)
                     so if N good "after" and M bad "after" then best likelihood is N^N M^M / (N+M)^(N+M) generally
                 ah, and now weight kind of makes sense again (weight with user weight times that weight)
+                starting conditions are unclear
+                    if we don't start with a bad test we're in a weird spot since we'll test the history a lot
+                    we will drift later, but slowly
+                    but if we start with a single assumed bad our probabilities are off
+                        probably OK
             unclear how weight is relevant here
                 maybe maximize (likelihood * weight) instead...
                 this is sort of weird because weight is forced to interact with likelihood multiplicatively
