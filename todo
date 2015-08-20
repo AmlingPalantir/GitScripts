@@ -57,7 +57,7 @@ GBD
                 this does horribly in the case of linear history and a low probability failure
                 we could instead weight with maximum likelihood (maximized over probability of failure)
                     so if N good "after" and M bad "after" then best likelihood is N^N M^M / (N+M)^(N+M) generally
-                ah, and now weight kind of makes sense again (weight with user weight times MLE)
+                ah, and now weight kind of makes sense again (weight with user weight times that weight)
             unclear how weight is relevant here
                 maybe maximize (likelihood * weight) instead...
                 this is sort of weird because weight is forced to interact with likelihood multiplicatively
