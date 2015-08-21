@@ -21,55 +21,28 @@ GRD
         ideally we'd dump the saved map, stack, etc.  into the script and so just drop state and run the new script from the beginning
 GBD
     track good/bad sets and be able to view the history (similar to "git bisect log")
-    probabilistic bisect
-        this is where you can run but a "good" doesn't mean good, it means it didn't show
-        there's no end condition, just the current best guess and the confidence for it
-        unclear if this should be part of GBD or be its own tool
     split good and presumed good
         something tested is "good", ancestors not yet tested are "presumed good"
         only difference is if we get to bad with "presumed good" parents we have to test them
             if one of them tests bad we work from there again
             if all of them test good we're done
-    parallel automated bisect
-        again, unclear if this is part of GBD or own tool
-        another possibility here is your run script produces a collection of failures
-        by end of run it needs to be the case that every known (commit, failure) pair has an originating ancestor
-            originating ancestor is an ancestor that has the failure all of whose ancestors do not
-        err, maybe the weaker requirement that every observed failure has an originating point
-            this is more similar to what bisect does right now
-        or even weaker, that every observed failure in the tip commit has an originating ancestor
-            then we just give:
-                a tip commit
-                a script to produce failure list
-                an "assume good" ancestor (to avoid checking all of history)
-                    or maybe we insist your script should check being an ancestor?
-                        uh, in parallel bisect you don't even git a repo, you just get a WT
-    maybe GBD needs to be split into state library plus
-        vanilla GBD frontend (manual, single WT, as current GBD)
-        probabilistic bisect
-        parallel external WT bisect
-        vanilla and parallel are both addressed by set-good, set-bad, and find-test-point (parallel speculates)
-        probabilistic needs something else though
-            we sort of want to track an earliest known bad and what goods have happened earlier than that
-            we can probably get away with running brute-force MLE for bad commit
-                actually, no
-                this is exactly doing a regular bisect and then hammering the parents (and if they break repeating from there)
-                this does horribly in the case of linear history and a low probability failure
-                we could instead weight with maximum likelihood (maximized over probability of failure)
-                    so if N good "after" and M bad "after" then best likelihood is N^N M^M / (N+M)^(N+M) generally
-                ah, and now weight kind of makes sense again (weight with user weight times that weight)
-                starting conditions are unclear
-                    if we don't start with a bad test we're in a weird spot since we'll test the history a lot
-                    we will drift later, but slowly
-                    but if we start with a single assumed bad our probabilities are off
-                        probably OK
-            unclear how weight is relevant here
-                maybe maximize (likelihood * weight) instead...
-                this is sort of weird because weight is forced to interact with likelihood multiplicatively
-                it means you're going to test the shit out of high weights and wait a long, long time before anyone else becomes likely enough to counter
-                I think weight just may be a bad idea here
-            yeah, I think this doesn't share any data structure code
-            in addition probabilistic sort of wants to parallelize as well...
+    parallel bisect
+        mostly just speculation on top of existing data structure
+        also, we can easily handle multiple failures
+            provide a script to run to produce failures, we'll run it on tip and bisect down any failures (from tip anyway)
+    probabilistic bisect
+        "good" doesn't mean good, it means no failure
+        can't use MLE for choosing bad commit or it amounts to running real bisect, then hammering parents (and if they break repeat from there)
+            this is especially horrible for low probability of failure
+        we could, for each commit, choose failure prob to maximize likelihood of it being the bad and use that as weight (times user weight of course)
+            if any failed ancestors then can't be it (in fact, only look at ancestors of an earlierst failure)
+            if there are N passes in descendents and M failures then failure prob is M/(N+M)
+                likelihood is N^N M^M / (N+M)^(N+M)
+                if no failed descendents?
+                    probably don't allow this, it's not statistically legit but it will be eventually OK to count initial failure towards stats
+                if no passed descendents likelihood is 1
+        unfortunately shares basically no data structure with other cases
+        and we probably want to parallelize here as well
 github pull requester
     worked: curl -n -d '{"title":"Please pull upstream/20110915-typo-fix","base":"8e90ecf3b8edae14b1b34663a7e0298040bf6435","head":"5a9814923942b2099862aa6503c8af8bd7b3e7d9"}' 'https://api.github.com/repos/benbernard/RecordStream/pulls'
     also worked: curl -n -d '{"title":"Please pull upstream/20110915-other-doc","base":"benbernard:master","head":"amling:upstream/20110915-other-doc"}' 'https://api.github.com/repos/benbernard/RecordStream/pulls'
