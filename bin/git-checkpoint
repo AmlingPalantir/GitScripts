@@ -1,10 +1,18 @@
 #!/bin/sh
 
 ROOT="$1"
+TITLE="$2"
 
 if [ -z "$ROOT" ]
 then
     exit 1
+fi
+
+if [ -z "$TITLE" ]
+then
+    TITLE_INSERT=""
+else
+    TITLE_INSERT=" '$TITLE'"
 fi
 
 cd "$ROOT" || exit 1
@@ -15,4 +23,4 @@ then
 fi
 
 git add -A
-git diff --cached --quiet || git commit -q -m'Checkpoint '"`date +'%Y/%m/%d %H:%M'`"
+git diff --cached --quiet || git commit -q -m"Checkpoint$TITLE_INSERT `date +'%Y/%m/%d %H:%M'`"
