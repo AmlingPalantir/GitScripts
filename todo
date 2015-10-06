@@ -19,6 +19,8 @@ GRD
             we'd also need to have pick generate as NOP if it's already "contained" in the top
     allow return to editting script at some failure points
         ideally we'd dump the saved map, stack, etc.  into the script and so just drop state and run the new script from the beginning
+    aliases or something?
+        I keep typing "hooks-add post-pick verify ./gradlew compileJava" and I'm getting sick of it
 GBD
     track good/bad sets and be able to view the history (similar to "git bisect log")
     split good and presumed good
