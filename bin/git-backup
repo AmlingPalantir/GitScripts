@@ -56,6 +56,10 @@ defined($remote) || die 'No remote?';
 defined($local_prefix) || die 'No local prefix?';
 defined($remote_prefix) || die 'No remote prefix?';
 
+# such jackassery...
+$local_prefix = "refs/heads/$local_prefix" unless($local_prefix =~ /^refs\//);
+$remote_prefix = "refs/heads/$remote_prefix" unless($remote_prefix =~ /^refs\//);
+
 my $combined_prefix;
 {
     my $pre = "";
@@ -63,17 +67,17 @@ my $combined_prefix;
 
     my $v1 = $local_prefix;
     my $v2 = $remote_prefix;
-    while(length($v1) && length($v2) && substr($v1, -1) eq substr($v2, -1))
-    {
-        $post = substr($v1, -1) . $post;
-        $v1 = substr($v1, 0, -1);
-        $v2 = substr($v2, 0, -1);
-    }
     while(length($v1) && length($v2) && substr($v1, 0, 1) eq substr($v2, 0, 1))
     {
         $pre .= substr($v1, 0, 1);
         $v1 = substr($v1, 1);
         $v2 = substr($v2, 1);
+    }
+    while(length($v1) && length($v2) && substr($v1, -1) eq substr($v2, -1))
+    {
+        $post = substr($v1, -1) . $post;
+        $v1 = substr($v1, 0, -1);
+        $v2 = substr($v2, 0, -1);
     }
     my $mid;
     if(length($v1) == 0 && length($v2) == 0)
@@ -87,19 +91,19 @@ my $combined_prefix;
     $combined_prefix = "$pre$mid$post";
 }
 
-my %remote_branches;
+my %remote_names;
 {
-    open(my $fh, "-|", "git", "ls-remote", "--heads", $remote) || die "Cannot open ls-remote";
+    open(my $fh, "-|", "git", "ls-remote", $remote) || die "Cannot open ls-remote";
     while(my $l = <$fh>)
     {
         chomp $l;
         if($l =~ /^([0-9a-f]{40})\t(.*)$/)
         {
             my ($hash, $ref) = ($1, $2);
-            if($ref =~ /^refs\/heads\/\Q$remote_prefix\E(.*)$/)
+            if($ref =~ /^\Q$remote_prefix\E(.*)$/)
             {
                 my $name = $1;
-                $remote_branches{$name} = $hash;
+                $remote_names{$name} = $hash;
             }
         }
         else
@@ -110,37 +114,35 @@ my %remote_branches;
     close($fh) || die "Cannot close ls-remote";
 }
 
-my %local_branches;
+my %local_names;
 {
-    open(my $fh, "-|", "git", "branch", "-v", "--no-abbrev") || die "Cannot open branch";
+    open(my $fh, "-|", "git", "show-ref") || die "Cannot open show-ref";
     while(my $l = <$fh>)
     {
         chomp $l;
-        $l =~ s/^..//;
-        next if($l =~ /^\(.*\) +[0-9a-f]{40}/);
-        if($l =~ /^([^ ]*) +([0-9a-f]{40}) .*$/)
+        if($l =~ /^([0-9a-f]{40}) (.*)$/)
         {
-            my ($name, $hash) = ($1, $2);
+            my ($hash, $name) = ($1, $2);
             if($name =~ s/^\Q$local_prefix\E//)
             {
-                $local_branches{$name} = $hash;
+                $local_names{$name} = $hash;
             }
         }
         else
         {
-            die "Bad line in branches: $l";
+            die "Bad line in show-ref: $l";
         }
     }
-    close($fh) || die "Cannot close branch";
+    close($fh) || die "Cannot close show-ref";
 }
 
 my $require_force;
 my @specs;
 {
-    for my $name (keys(%local_branches))
+    for my $name (keys(%local_names))
     {
-        my $remote_hash = delete $remote_branches{$name};
-        my $local_hash = $local_branches{$name};
+        my $remote_hash = delete $remote_names{$name};
+        my $local_hash = $local_names{$name};
         if(!defined($remote_hash))
         {
             print "New branch $combined_prefix$name at $local_hash\n";
@@ -170,15 +172,15 @@ my @specs;
             #print "Matching version of $name at $local_hash, will do nothing.\n";
             next;
         }
-        push @specs, "refs/heads/$local_prefix$name:refs/heads/$remote_prefix$name";
+        push @specs, "$local_prefix$name:$remote_prefix$name";
     }
 
-    for my $name (keys(%remote_branches))
+    for my $name (keys(%remote_names))
     {
-        my $remote_hash = $remote_branches{$name};
+        my $remote_hash = $remote_names{$name};
         print "Stale branch $combined_prefix$name at $remote_hash, will delete.\n";
         $require_force = 1;
-        push @specs, ":refs/heads/$remote_prefix$name";
+        push @specs, ":$remote_prefix$name";
     }
 }
 
