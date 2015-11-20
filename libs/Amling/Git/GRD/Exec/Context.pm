@@ -119,7 +119,7 @@ sub run_hooks
 {
     my $self = shift;
     my $event = shift;
-    my @env = @_;
+    my @env = %{shift || {}};
 
     die "No such event $event" unless(is_event($event));
 
@@ -128,7 +128,7 @@ sub run_hooks
         my $k = shift @env;
         my $v = shift @env;
         local $ENV{"GRD_HOOK_$k"} = $v;
-        return $self->run_hooks($event, @env);
+        return $self->run_hooks($event, {@env});
     }
 
     for my $cmd (@{$self->get_hooks($event)})

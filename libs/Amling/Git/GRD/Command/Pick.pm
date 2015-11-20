@@ -45,6 +45,11 @@ sub execute_simple
     my $commit = shift;
     my $msg = shift;
 
+    my $env =
+    {
+        'COMMIT' => $commit,
+    };
+
     # if $commit's parent is us we're "picking" a change one down the line, we
     # can just fast-forward to it
     if(Amling::Git::Utils::convert_commitlike("$commit^") eq $ctx->get_head())
@@ -64,7 +69,7 @@ sub execute_simple
             }
 
             print "git cherry-pick of $commit blew chunks, please clean it up (get correct version into index)...\n";
-            Amling::Git::GRD::Utils::run_shell(1, 1, 0, {'GRD_COMMIT' => $commit});
+            Amling::Git::GRD::Utils::run_shell(1, 1, 0, $env);
             print "Continuing...\n";
 
             if(Amling::Git::Utils::is_clean())
@@ -98,7 +103,7 @@ sub execute_simple
     }
 
     # note we intentionally do not run this for changes that didn't actually get picked
-    $ctx->run_hooks('post-pick', 'COMMIT' => $commit);
+    $ctx->run_hooks('post-pick', $env);
 }
 
 sub str_simple

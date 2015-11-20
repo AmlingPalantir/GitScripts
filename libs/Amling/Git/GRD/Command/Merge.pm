@@ -36,14 +36,15 @@ sub execute_simple
 
     $ctx->materialize_head($parent0);
 
+    my $env =
+    {
+        'PARENT0' => $parent0,
+        'PARENTS1' => join(' ', @parents1),
+    };
+
     if(!Amling::Git::Utils::run_system("git", "merge", "--no-edit", "--commit", "--no-ff", @parents1))
     {
         print "git merge of " . join(", ", @parents1) . " into $parent0 blew chunks, please clean it up (get correct version into index)...\n";
-        my $env =
-        {
-            'GRD_PARENT0' => $parent0,
-            'GRD_PARENTS1' => join(" ", @parents1),
-        };
         Amling::Git::GRD::Utils::run_shell(1, 1, 0, $env);
         print "Continuing...\n";
 
@@ -51,7 +52,7 @@ sub execute_simple
     }
 
     $ctx->uptake_head();
-    $ctx->run_hooks('post-merge', 'PARENT0' => $parent0, 'PARENTS1' => join(' ', @parents1));
+    $ctx->run_hooks('post-merge', $env);
 }
 
 Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });

@@ -33,7 +33,7 @@ sub execute_simple
 
     if(defined($branch))
     {
-        $ctx->run_hooks('pre-branch', 'BRANCH' => $branch);
+        $ctx->run_hooks('pre-branch', {'BRANCH' => $branch});
         $ctx->get('branches', {})->{$branch} = $ctx->get_head();
         $ctx->set('head', [1, $branch]);
     }

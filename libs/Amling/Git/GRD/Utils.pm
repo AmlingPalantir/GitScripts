@@ -22,7 +22,7 @@ sub run_shell
         {
             my $grd_level2 = $grd_level + 1;
             print "GRD level: $grd_level2\n";
-            _system_with_env([$shell], %$env, 'GRD_LEVEL', $grd_level2);
+            _system_with_env([$shell], (map { ("GRD_$_", $env->{$_}) } keys(%$env)), 'GRD_LEVEL', $grd_level2);
         }
         else
         {
