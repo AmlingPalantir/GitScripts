@@ -18,7 +18,6 @@ sub new
         'PLUS_OPTIONS' => {},
         'MINUS_OPTIONS' => [],
         'TREE_OPTIONS' => {},
-        'MERGE_CLEANING' => 1,
     };
 
     bless $this, $class;
@@ -89,8 +88,6 @@ sub options
         },
 
         "tree=s" => sub { $tree_options->{$_[1]} = 1; },
-
-        'merge-cleaning!' => \($this->{'MERGE_CLEANING'}),
     );
 }
 
@@ -435,27 +432,26 @@ sub build_nodes
             push @new_parents, $this->build_nodes($parent, $nodes, $old_new, $minus_options, $parents, $subjects, 0);
         }
 
-        if($this->{'MERGE_CLEANING'})
+        # merge cleaning, only version for now
         {
             my @kept_parents;
-            my @parent_queue = reverse(@new_parents);
-            while(@parent_queue)
+            for(my $i = 0; $i < @new_parents; ++$i)
             {
-                my $test_parent = shift @parent_queue;
+                my $test_parent = $new_parents[$i];
                 my %needed_picks = %{$nodes->{$test_parent}->{'picks_contained'}};
                 my %needed_bases = %{$nodes->{$test_parent}->{'bases_contained'}};
 
-                clear_picks(\%needed_picks, \%picks_contained);
-                clear_bases(\%needed_bases, \%bases_contained);
-                for my $queued_parent (@parent_queue)
+                # only check coverage from left
+                for my $kept_parent (@kept_parents)
                 {
-                    clear_picks(\%needed_picks, $nodes->{$queued_parent}->{'picks_contained'});
-                    clear_bases(\%needed_bases, $nodes->{$queued_parent}->{'bases_contained'});
+                    clear_picks(\%needed_picks, $nodes->{$kept_parent}->{'picks_contained'});
+                    clear_bases(\%needed_bases, $nodes->{$kept_parent}->{'bases_contained'});
                 }
 
-                if(%needed_picks || %needed_bases)
+                # keep if we have any uniqueness, or we're first parent (always honor rebased first parent)
+                if(%needed_picks || %needed_bases || ($i == 0))
                 {
-                    unshift @kept_parents, $test_parent;
+                    push @kept_parents, $test_parent;
                     $picks_contained{$_} = 1 for(keys(%{$nodes->{$test_parent}->{'picks_contained'}}));
                     $bases_contained{$_} = 1 for(keys(%{$nodes->{$test_parent}->{'bases_contained'}}));
                 }
