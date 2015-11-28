@@ -95,12 +95,9 @@ sub compute
             }
             next if($ko);
         }
-        my $after_weight = $state->combined_weight($weight_code, $after);
-        my $before_weight = $state->combined_weight($weight_code, keys(%known_blocks), keys(%assumed_blocks));
-        my $delta_weight = $after_weight - $before_weight;
-        my $after_count = $state->combined_weight('1', $after);
-        my $before_count = $state->combined_weight('1', keys(%known_blocks), keys(%assumed_blocks));
-        my $delta_count = $after_count - $before_count;
+        my @blocks = (keys(%known_blocks), keys(%assumed_blocks));
+        my $delta_weight = $state->delta_weight($weight_code, [$after], [@blocks]);
+        my $delta_count = $state->delta_weight('1', [$after], [@blocks]);
 
         push @candidates, [$after, \%known_blocks, \%assumed_blocks, $delta_weight, $delta_count];
     }

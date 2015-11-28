@@ -100,13 +100,55 @@ sub load
     Amling::Git::Utils::log_commits([@args], $cb);
 }
 
-sub combined_weight
+sub delta_weight
 {
     my $self = shift;
     my $weight_code = shift;
-    my @commits = @_;
+    my $plus = shift;
+    my $minus = shift;
 
-    ...
+    $self->load(@$plus);
+
+    my $weight_sub = $self->_weight_sub($weight_code);
+
+    my $weight = 0;
+    my @q = (@$plus);
+    my %already = (map { $_ => 1 } @$minus);
+    while(@q)
+    {
+        my $commit = shift @q;
+        next if($already{$commit});
+        $already{$commit} = 1;
+
+        $weight += $weight_sub->($commit);
+
+        push @q, @{$self->get_commit($commit)->{'parents'}};
+    }
+
+    return $weight;
+}
+
+sub _weight_sub
+{
+    my $self = shift;
+    my $weight_code = shift;
+
+    my $uncached_sub = eval "sub { my \$c = shift; $weight_code }";
+    die "Compilation of $weight_code failed: $@" if($@);
+
+    return sub
+    {
+        my $commit = shift;
+        my $commit_data = $self->{'COMMITS'}->{$commit};
+
+        my $ret = $commit_data->{'WEIGHTS'}->{$weight_code};
+        if(!defined($ret))
+        {
+            $ret = $commit_data->{'WEIGHTS'}->{$weight_code} = $uncached_sub->($commit_data->{'OBJECT'});
+        }
+
+        return $ret;
+    };
 }
 
 1;
