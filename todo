@@ -51,3 +51,44 @@ GBD
 github pull requester
     worked: curl -n -d '{"title":"Please pull upstream/20110915-typo-fix","base":"8e90ecf3b8edae14b1b34663a7e0298040bf6435","head":"5a9814923942b2099862aa6503c8af8bd7b3e7d9"}' 'https://api.github.com/repos/benbernard/RecordStream/pulls'
     also worked: curl -n -d '{"title":"Please pull upstream/20110915-other-doc","base":"benbernard:master","head":"amling:upstream/20110915-other-doc"}' 'https://api.github.com/repos/benbernard/RecordStream/pulls'
+
+GBD, rewrite again...
+    gbd command --options ... -- command2 --options ... -- ...
+    gbd shell:
+        command --options ...
+    commands
+        shell
+        label
+            --label
+                default by alias, e.g.  good/bad/before/after
+            --commit = HEAD
+        load/save
+            --file = <git dir>/gbd/default.state
+            --name -> --file <git dir>/gbd/<name>.state
+        range/gitk/log
+            --strat = min-range
+            --before-label = before
+            --after-label = after
+            --weight = 1
+            --command
+                default by alias, range -> echo, gitk -> gitk, log -> "git log"
+        next/checkout
+            --strat = min-range
+            --before-label = before
+            --after-label = after
+            --weight = 1
+            --command
+                default by alias, next -> echo, checkout -> "git checkout"
+        status
+            --strat = min-range
+            --before-label = before
+            --after-label = after
+            --weight = 1
+    omfg quoting for --command
+        e.g.  "git checkout" is not a single thing, but system("$command $commit") or system("$command ^$from $to") are both a disaster
+        could be `range git log` and `range --shell "git log"`
+            former (unmarked args) is run as args
+            latter (--shell) is concatenated and run e.g.  system("$command ^$from $to")
+    caching of weight?
+        evaling weight every run of `checkout` or whatever is going to be horrible
+        maybe we just assume commit + weight code string is deterministic and cache by that
