@@ -5,13 +5,14 @@ use warnings;
 
 sub compute
 {
+    my $clazz = shift;
     my $state = shift;
     my $before_label = shift;
     my $after_label = shift;
     my $weight_code = shift;
 
-    my %befores = map { $_ => 1 } @{$state->commits_for_label($before_label)};
-    my %afters = map { $_ => 1 } @{$state->commits_for_label($after_label)};
+    my %befores = map { $_ => 1 } $state->commits_for_label($before_label);
+    my %afters = map { $_ => 1 } $state->commits_for_label($after_label);
 
     # step 1: decide which befores can provide assumed-before evidence for which afters
     my %before_afters_contained;
@@ -148,7 +149,20 @@ sub compute
     }
     else
     {
-        ...
+        # the common case -- we have a nontrivial window blah blah blah
+        my $weight_code2;
+        my $delta_weight2;
+        if($delta_weight != 0)
+        {
+            $weight_code2 = $weight_code;
+            $delta_weight2 = $delta_weight;
+        }
+        else
+        {
+            $weight_code2 = '1';
+            $delta_weight2 = $delta_count;
+        }
+        $next = choose_next($state, $weight_code2, $after, [keys(%$known_blocks), keys(%$assumed_blocks)], $delta_weight2);
     }
 
     return
@@ -163,6 +177,91 @@ sub compute
         'NEXT' => $next,
         'STATUS' => [@status],
     };
+}
+
+sub choose_next
+{
+    my $state = shift;
+    my $weight_code = shift;
+    my $after = shift;
+    my $blocks = shift;
+    my $delta_weight = shift;
+
+    my $target_weight = $delta_weight / 2;
+    my %blocks = map { $_ => 1 } @$blocks;
+
+    # Look over parents.  If none have within-window weight higher than target
+    # then we're sort of doomed (the only cut point is $after itself but we
+    # can't test that).  If this happens we take the parent with the highest
+    # weight (it's the most we can guarantee eliminating in one test).
+    my $best_parent = undef;
+    my $best_weight = 0;
+    my $ok = 0;
+    for my $parent (@{$state->get_commit($after)->{'parents'}})
+    {
+        next if($blocks{$parent});
+        my $weight = $state->delta_weight($weight_code, [$parent], $blocks);
+        if($weight > $best_weight)
+        {
+            $best_parent = $parent;
+            $best_weight = $weight;
+        }
+        if($weight >= $target_weight / 2)
+        {
+            # This guarantees the cut point will not be $after, we can proceed
+            # to main case.
+            $ok = 1;
+            last;
+        }
+    }
+
+    if(!$ok)
+    {
+        die unless($best_parent); # this would have been a one commit window
+        return $best_parent;
+    }
+
+    # Great, now look for a cut point for real.
+    my %too_low = %blocks;
+    my $too_high = $after;
+    while(1)
+    {
+        my @middle;
+        my @q = ($too_high);
+        my %already = %too_low;
+        while(@q)
+        {
+            my $commit = shift @q;
+            next if($already{$commit});
+            $already{$commit} = 1;
+
+            if($commit ne $too_high)
+            {
+                push @middle, $commit;
+            }
+
+            push @q, @{$state->get_commit($commit)->{'parents'}};
+        }
+
+        if(!@middle)
+        {
+            die if($too_high eq $after); # this should have been caught above
+            return $too_high;
+        }
+
+        @middle = map { $_->[0] } sort { $a->[1] <=> $b->[1] } map { [$_, rand()] } @middle;
+        my $test = $middle[0];
+        my $test_weight = $state->delta_weight($weight_code, [$test], $blocks);
+
+        if($test_weight >= $target_weight)
+        {
+            $too_high = $test;
+        }
+        else
+        {
+            $too_low{$test} = 1;
+        }
+    }
 }
 
 1;
