@@ -10,19 +10,22 @@ use base ('Amling::Git::GBD::Action::Simple');
 
 sub defaults
 {
+    my $class = shift;
+
     return
     (
         'COMMIT' => 'HEAD',
-        'LABEL' => undef,
+        'LABEL' => $class->label(),
     );
 }
 
 sub options
 {
+    my $self = shift;
     return
     (
         'commit=s' => 'COMMIT',
-        'label=s' => 'LABEL',
+        ($self->label() ? () : ('label=s' => 'LABEL')),
     );
 }
 
@@ -51,6 +54,11 @@ sub execute
     }
 
     return $state;
+}
+
+sub label
+{
+    return undef;
 }
 
 1;
