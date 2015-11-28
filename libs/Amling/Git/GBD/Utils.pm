@@ -54,4 +54,19 @@ sub load_object
     return $r;
 }
 
+sub find_impl
+{
+    my $base = shift;
+    my $name = shift;
+
+    $name =~ s/-/_/g;
+    my $clazz = $base . '::' . $name;
+    my $file = $clazz;
+    $file =~ s@::@/@g;
+    $file .= '.pm';
+    require $file;
+
+    return $clazz;
+}
+
 1;

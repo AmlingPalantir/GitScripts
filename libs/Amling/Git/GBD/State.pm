@@ -3,345 +3,173 @@ package Amling::Git::GBD::State;
 use strict;
 use warnings;
 
-use Amling::Git::GBD::Strategy;
+use Amling::Git::Utils;
 
 sub new
 {
     my $class = shift;
-    my $commits_external = shift;
-    my $strategy_external = shift;
 
     my $commits = {};
 
-    for my $commit (keys(%$commits_external))
+    my $self =
     {
-        my $commit_state_external = $commits_external->{$commit};
-        $commits->{$commit} =
-        {
-            'weight' => $commit_state_external->{'weight'},
-            'parents' => [],
-            'children' => [],
-        };
-    }
-
-    for my $child (keys(%$commits_external))
-    {
-        my $commit_state_external = $commits_external->{$child};
-        for my $parent (@{$commit_state_external->{'parents'}})
-        {
-            if($commits->{$parent})
-            {
-                push @{$commits->{$child}->{'parents'}}, $parent;
-                push @{$commits->{$parent}->{'children'}}, $child;
-            }
-        }
-    }
-
-    my $self = {};
-
-    $self->{'commits'} = $commits;
-    $self->{'strategy'} = $strategy_external if(defined($strategy_external));
+        'TIPS' => {},
+        'COMMITS' => {},
+        'LABELS' => {},
+    };
 
     bless $self, $class;
 
     return $self;
 }
 
-sub get_commits
+sub set_label
 {
-    my $this = shift;
-
-    return keys(%{$this->{'commits'}});
-}
-
-sub clear_commit
-{
-    my $this = shift;
-    my $root_commit = shift;
-
-    my $root_known = $this->get_known($root_commit);
-    if(defined($root_known))
-    {
-        my $field;
-        if($root_known eq 'GOOD')
-        {
-            $field = 'children';
-        }
-        elsif($root_known eq 'BAD')
-        {
-            $field = 'parents';
-        }
-        my $cb = sub
-        {
-            my $commit = shift;
-            my $known = $this->get_known($commit);
-            if(defined($known) && $known eq $root_known)
-            {
-                $this->_set_known($commit, undef);
-                return 1;
-            }
-            return 0;
-        };
-        $this->_traverse($root_commit, $cb, $field);
-    }
-}
-
-sub has_commit
-{
-    my $this = shift;
+    my $self = shift;
     my $commit = shift;
+    my $label = shift;
 
-    return defined($this->{'commits'}->{$commit});
-}
+    $self->load($commit);
 
-sub get_known
-{
-    my $this = shift;
-    my $commit = shift;
-
-    my $commit_state = $this->{'commits'}->{$commit};
-    if(!defined($commit_state))
+    my $old_label = $self->{'COMMITS'}->{$commit}->{'LABEL'};
+    if(defined($old_label))
     {
-        die "Unknown commit $commit";
+        delete(($self->{'LABELS'}->{$old_label} ||= {})->{$commit});
     }
 
-    return $commit_state->{'known'};
-}
-
-sub is_good
-{
-    my $this = shift;
-    my $commit = shift;
-
-    my $known = $this->get_known($commit);
-    return defined($known) && $known eq 'GOOD';
-}
-
-sub is_bad
-{
-    my $this = shift;
-    my $commit = shift;
-
-    my $known = $this->get_known($commit);
-    return defined($known) && $known eq 'BAD';
-}
-
-sub get_weight
-{
-    my $this = shift;
-    my $commit = shift;
-
-    my $commit_state = $this->{'commits'}->{$commit};
-    if(!defined($commit_state))
+    $self->{'COMMITS'}->{$commit}->{'LABEL'} = $label;
+    if(defined($label))
     {
-        die "Unknown commit $commit";
+        ($self->{'LABELS'}->{$label} ||= {})->{$commit} = 1;
     }
 
-    return $commit_state->{'weight'};
+    return $old_label;
 }
 
-sub get_parents
+sub get_label
 {
-    my $this = shift;
+    my $self = shift;
     my $commit = shift;
 
-    my $commit_state = $this->{'commits'}->{$commit};
-    if(!defined($commit_state))
-    {
-        die "Unknown commit $commit";
-    }
+    $self->load($commit);
 
-    return @{$commit_state->{'parents'}};
+    return $self->{'COMMITS'}->{$commit}->{'LABEL'};
 }
 
-sub _set_known
+sub commits_for_label
 {
-    my $this = shift;
+    my $self = shift;
+    my $label = shift;
+
+    return sort(keys(%{$self->{'LABELS'}->{$label} || {}}));
+}
+
+sub get_commit
+{
+    my $self = shift;
     my $commit = shift;
-    my $known = shift;
 
-    my $commit_state = $this->{'commits'}->{$commit};
-    if(!defined($commit_state))
-    {
-        die "_set_known() on unknown $commit_state!";
-    }
+    $self->load($commit);
 
-    $commit_state->{'known'} = $known
+    return $self->{'COMMITS'}->{$commit}->{'OBJECT'};
 }
 
-sub set_bad
+sub load
 {
-    my $this = shift;
-    my $root_commit = shift;
+    my $self = shift;
+    my @commits = @_;
 
-    $this->set_common($root_commit, 'BAD', 'children');
-}
+    @commits = grep { !$self->{'COMMITS'}->{$_} } @commits;
+    return unless(@commits);
 
-sub set_good
-{
-    my $this = shift;
-    my $root_commit = shift;
-
-    $this->set_common($root_commit, 'GOOD', 'parents');
-}
-
-sub set_common
-{
-    my $this = shift;
-    my $root_commit = shift;
-    my $root_known = shift;
-    my $field = shift;
-
+    my @args = (@commits, (map { "^$_" } keys(%{$self->{'TIPS'}})));
+    $self->{'TIPS'}->{$_} = 1 for(@commits);
     my $cb = sub
     {
-        my $commit = shift;
-        my $known = $this->get_known($commit);
-        if(defined($known))
+        my $object = shift;
+        my $commit = $object->{'hash'};
+        delete $self->{'TIPS'}->{$_} for(@{$object->{'parents'}});
+        die if($self->{'COMMITS'}->{$commit});
+        $self->{'COMMITS'}->{$commit} =
         {
-            if($known eq $root_known)
-            {
-                return 0;
-            }
-            else
-            {
-                die "$commit is already $known!";
-            }
-        }
-        else
-        {
-            $this->_set_known($commit, $root_known);
-            return 1;
-        }
-    };
-    $this->_traverse($root_commit, $cb, $field);
-}
-
-sub find_bad_minima
-{
-    my $this = shift;
-
-    my @minima;
-
-    COMMIT:
-    for my $root_commit ($this->get_commits())
-    {
-        if(!$this->is_bad($root_commit))
-        {
-            # we're not BAD
-            next;
-        }
-
-        for my $parent (@{$this->{'commits'}->{$root_commit}->{'parents'}})
-        {
-            if($this->is_bad($parent))
-            {
-                # we're not minimal BAD
-                next COMMIT;
-            }
-        }
-        my $ct = 0;
-        my $cb = sub
-        {
-            my $commit = shift;
-            if($commit eq $root_commit)
-            {
-                return 1;
-            }
-            my $known = $this->get_known($commit);
-            if(defined($known))
-            {
-                if($known eq 'BAD')
-                {
-                    die "BAD upstream $commit of minimal BAD $root_commit?!";
-                }
-                elsif($known eq 'GOOD')
-                {
-                    return 0;
-                }
-            }
-            else
-            {
-                ++$ct;
-                return 1;
-            }
+            'OBJECT' => $object,
+            'LABEL' => undef,
+            'WEIGHTS' => {},
         };
-        $this->_traverse($root_commit, $cb, 'parents');
-
-        push @minima, [$root_commit, $ct];
-    }
-
-    @minima = sort { ($a->[1] <=> $b->[1]) || ($a->[0] cmp $b->[0]) } @minima;
-
-    return @minima;
+    };
+    Amling::Git::Utils::log_commits([@args], $cb);
 }
 
-sub traverse_up
+sub delta_weight
 {
-    my $this = shift;
-    my $root_commit = shift;
-    my $cb = shift;
+    my $self = shift;
+    my $weight_code = shift;
+    my $plus = shift;
+    my $minus = shift;
 
-    $this->_traverse($root_commit, $cb, 'parents');
+    $self->load(@$plus);
+
+    my $weight_sub = $self->_weight_sub($weight_code);
+
+    my $weight = 0;
+    $self->dfs($plus, $minus, sub
+    {
+        my $commit = shift;
+        $weight += $weight_sub->($commit);
+        return 1;
+    });
+
+    return $weight;
 }
 
-sub _traverse
+sub _weight_sub
 {
-    my $this = shift;
-    my $root_commit = shift;
-    my $cb = shift;
-    my $field = shift;
+    my $self = shift;
+    my $weight_code = shift;
 
-    my @q = ($root_commit);
-    my %done = ($root_commit => 1);
+    my $uncached_sub = eval "sub { my \$c = shift; $weight_code }";
+    die "Compilation of $weight_code failed: $@" if($@);
+
+    return sub
+    {
+        my $commit = shift;
+        my $commit_data = $self->{'COMMITS'}->{$commit};
+
+        my $ret = $commit_data->{'WEIGHTS'}->{$weight_code};
+        if(!defined($ret))
+        {
+            $ret = $commit_data->{'WEIGHTS'}->{$weight_code} = $uncached_sub->($commit_data->{'OBJECT'});
+        }
+
+        return $ret;
+    };
+}
+
+sub dfs
+{
+    my $self = shift;
+    my $plus = shift;
+    my $minus = shift;
+    my $cb = shift;
+
+    my @q = @$plus;
+    my %already = (map { $_ => 1 } @$minus);
     while(@q)
     {
         my $commit = shift @q;
-        if($cb->($commit))
+        next if($already{$commit});
+        $already{$commit} = 1;
+
+        my $r = $cb->($commit);
+        if($r < 0)
         {
-            if($this->{'commits'}->{$commit})
-            {
-                for my $next (@{$this->{'commits'}->{$commit}->{$field}})
-                {
-                    if(!$done{$next})
-                    {
-                        push @q, $next;
-                        $done{$next} = 1;
-                    }
-                }
-            }
+            return;
+        }
+        if($r > 0)
+        {
+            push @q, @{$self->get_commit($commit)->{'parents'}};
         }
     }
-}
-
-sub choose_cutpoint
-{
-    my $this = shift;
-
-    return Amling::Git::GBD::Strategy::find($this->{'strategy'})->choose_cutpoint($this);
-}
-
-sub get_cumulative_weight
-{
-    my $this = shift;
-    my $commit = shift;
-
-    my $cumulative_weight = 0;
-    my $cb = sub
-    {
-        my $commit = shift;
-
-        if($this->is_good($commit))
-        {
-            return 0;
-        }
-
-        $cumulative_weight += $this->get_weight($commit);
-        return 1;
-    };
-
-    $this->traverse_up($commit, $cb);
-
-    return $cumulative_weight;
 }
 
 1;
