@@ -18,6 +18,7 @@ sub execute2
     my $dir = dirname($file);
     (system('mkdir', '-p', '--', $dir) == 0) || die "Could not mkdirs to $dir: $!";
     Amling::Git::GBD::Utils::save_object($file, $state);
+    print "Saved state to: $file\n";
 
     return $state;
 }

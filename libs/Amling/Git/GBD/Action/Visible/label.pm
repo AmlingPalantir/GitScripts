@@ -38,7 +38,17 @@ sub execute
     my $state = shift;
 
     my $commit = Amling::Git::Utils::convert_commitlike($self->{'COMMIT'});
-    $state->set_label($commit, $self->{'LABEL'});
+    my $label = $self->{'LABEL'};
+    my $old_label = $state->set_label($commit, $label);
+
+    if(defined($old_label))
+    {
+        print "Relabelled $commit: $old_label -> $label\n";
+    }
+    else
+    {
+        print "Labelled $commit: $label\n";
+    }
 
     return $state;
 }

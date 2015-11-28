@@ -19,6 +19,7 @@ sub execute2
     {
         die "State is not a Amling::Git::GBD::State?";
     }
+    print "Loaded state from: $file\n";
 
     return $state;
 }

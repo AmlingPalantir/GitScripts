@@ -42,6 +42,8 @@ sub set_label
     {
         ($self->{'LABELS'}->{$label} ||= {})->{$commit} = 1;
     }
+
+    return $old_label;
 }
 
 sub load
