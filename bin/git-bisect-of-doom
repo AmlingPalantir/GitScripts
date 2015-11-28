@@ -24,21 +24,8 @@ use FindBin;
 use lib "$FindBin::RealBin/../libs";
 
 use Amling::Git::GBD::State;
+use Amling::Git::GBD::Action::Visible::shell;
 
 my $state = Amling::Git::GBD::State->new();
 
-my @args = @ARGV;
-while(@args)
-{
-    my $action_name = shift @args;
-
-    my $clazz = "Amling::Git::GBD::Action::Visible::$action_name";
-    my $clazz_file = $clazz;
-    $clazz_file =~ s@::@/@g;
-    $clazz_file .= '.pm';
-    require $clazz_file;
-    my $action = $clazz->new();
-
-    $action->configure(\@args);
-    $state = $action->execute($state);
-}
+Amling::Git::GBD::Action::Visible::shell::interpret($state, @ARGV);

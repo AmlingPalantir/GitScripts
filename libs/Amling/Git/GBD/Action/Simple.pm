@@ -40,4 +40,22 @@ sub configure
     $self->validate();
 }
 
+sub defaults
+{
+    return
+    (
+    );
+}
+
+sub options
+{
+    return
+    (
+    );
+}
+
+sub validate
+{
+}
+
 1;
