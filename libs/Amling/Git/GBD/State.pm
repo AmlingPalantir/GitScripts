@@ -112,18 +112,12 @@ sub delta_weight
     my $weight_sub = $self->_weight_sub($weight_code);
 
     my $weight = 0;
-    my @q = (@$plus);
-    my %already = (map { $_ => 1 } @$minus);
-    while(@q)
+    $self->dfs($plus, $minus, sub
     {
-        my $commit = shift @q;
-        next if($already{$commit});
-        $already{$commit} = 1;
-
+        my $commit = shift;
         $weight += $weight_sub->($commit);
-
-        push @q, @{$self->get_commit($commit)->{'parents'}};
-    }
+        return 1;
+    });
 
     return $weight;
 }
@@ -149,6 +143,33 @@ sub _weight_sub
 
         return $ret;
     };
+}
+
+sub dfs
+{
+    my $self = shift;
+    my $plus = shift;
+    my $minus = shift;
+    my $cb = shift;
+
+    my @q = @$plus;
+    my %already = (map { $_ => 1 } @$minus);
+    while(@q)
+    {
+        my $commit = shift @q;
+        next if($already{$commit});
+        $already{$commit} = 1;
+
+        my $r = $cb->($commit);
+        if($r < 0)
+        {
+            return;
+        }
+        if($r > 0)
+        {
+            push @q, @{$self->get_commit($commit)->{'parents'}};
+        }
+    }
 }
 
 1;

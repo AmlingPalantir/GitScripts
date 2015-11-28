@@ -19,21 +19,15 @@ sub compute
     for my $before (keys(%befores))
     {
         my $afters_contained = $before_afters_contained{$before} = {};
-        my @q = ($before);
-        my %already;
-        while(@q)
+        $state->dfs([$before], [], sub
         {
-            my $commit = shift @q;
-            next if($already{$commit});
-            $already{$commit} = 1;
-
+            my $commit = shift;
             if($afters{$commit})
             {
                 $afters_contained->{$commit} = 1;
             }
-
-            push @q, @{$state->get_commit($commit)->{'parents'}};
-        }
+            return 1;
+        });
     }
 
     # step 2: look over after candidates
@@ -43,57 +37,38 @@ sub compute
         # take all befores which do not have $after as an ancestor and build
         # %assumed_befores from their ancestors
         my %assumed_befores;
+        $state->dfs([grep { !$before_afters_contained{$_}->{$after} } keys(%befores)], [], sub
         {
-            my @q;
-            for my $before (keys(%befores))
-            {
-                next if($before_afters_contained{$before}->{$after});
-                push @q, $before;
-            }
-            my %already;
-            while(@q)
-            {
-                my $commit = shift @q;
-                next if($already{$commit});
-                $already{$commit} = 1;
-
-                $assumed_befores{$commit} = 1;
-
-                push @q, @{$state->get_commit($commit)->{'parents'}};
-            }
-        }
+            my $commit = shift;
+            $assumed_befores{$commit} = 1;
+            return 1;
+        });
 
         # now walk back from $after looking for ... stuff
         my %known_blocks;
         my %assumed_blocks;
         {
             my $ko = 0;
-            my @q = ($after);
-            my %already;
-            while(@q)
+            $state->dfs([$after], [], sub
             {
-                my $commit = shift @q;
-                next if($already{$commit});
-                $already{$commit} = 1;
-
+                my $commit = shift;
                 if($befores{$commit})
                 {
                     $known_blocks{$commit} = 1;
-                    next;
+                    return 0;
                 }
                 if($assumed_befores{$commit})
                 {
                     $assumed_blocks{$commit} = 1;
-                    next;
+                    return 0;
                 }
                 if($afters{$commit} && $commit ne $after)
                 {
                     $ko = 1;
-                    last;
+                    return -1;
                 }
-
-                push @q, @{$state->get_commit($commit)->{'parents'}};
-            }
+                return 1;
+            });
             next if($ko);
         }
         my @blocks = (keys(%known_blocks), keys(%assumed_blocks));
@@ -227,21 +202,15 @@ sub choose_next
     while(1)
     {
         my @middle;
-        my @q = ($too_high);
-        my %already = %too_low;
-        while(@q)
+        $state->dfs([$too_high], [keys(%too_low)], sub
         {
-            my $commit = shift @q;
-            next if($already{$commit});
-            $already{$commit} = 1;
-
+            my $commit = shift;
             if($commit ne $too_high)
             {
                 push @middle, $commit;
             }
-
-            push @q, @{$state->get_commit($commit)->{'parents'}};
-        }
+            return 1;
+        });
 
         if(!@middle)
         {
