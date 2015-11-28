@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Amling::Git::GBD::Action::Simple;
+use Amling::Git::GBD::Utils;
 
 use base ('Amling::Git::GBD::Action::Simple');
 
@@ -38,13 +39,8 @@ sub execute
     my $after = $self->{'AFTER'};
     my $weight = $self->{'WEIGHT'};
 
-    my $clazz = "Amling::Git::GBD::Strategy::$strategy_name";
-    my $clazz_file = $clazz;
-    $clazz_file =~ s@::@/@g;
-    $clazz_file .= '.pm';
-    require $clazz_file;
-
-    my $result = $clazz->compute($state, $before, $after, $weight);
+    my $strategy_clazz = Amling::Git::GBD::Utils::find_impl('Amling::Git::GBD::Strategy', $strategy_name);
+    my $result = $strategy_clazz->compute($state, $before, $after, $weight);
 
     return $self->execute2($state, $result);
 }

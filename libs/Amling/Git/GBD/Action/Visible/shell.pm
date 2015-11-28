@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Amling::Git::GBD::Action::Simple;
+use Amling::Git::GBD::Utils;
 use Text::ParseWords;
 
 use base ('Amling::Git::GBD::Action::Simple');
@@ -48,14 +49,11 @@ sub interpret
     {
         my $action_name = shift;
 
-        my $clazz = "Amling::Git::GBD::Action::Visible::$action_name";
-        my $clazz_file = $clazz;
-        $clazz_file =~ s@::@/@g;
-        $clazz_file .= '.pm';
-        require $clazz_file;
-        my $action = $clazz->new();
+        my $action_clazz = Amling::Git::GBD::Utils::find_impl('Amling::Git::GBD::Action::Visible', $action_name);
+        my $action = $action_clazz->new();
 
         $action->configure(\@_);
+
         $state = $action->execute($state);
     }
 
