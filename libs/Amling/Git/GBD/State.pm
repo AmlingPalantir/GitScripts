@@ -46,6 +46,34 @@ sub set_label
     return $old_label;
 }
 
+sub get_label
+{
+    my $self = shift;
+    my $commit = shift;
+
+    $self->load($commit);
+
+    return $self->{'COMMITS'}->{$commit}->{'LABEL'};
+}
+
+sub commits_for_label
+{
+    my $self = shift;
+    my $label = shift;
+
+    return sort(keys(%{$self->{'LABELS'}->{$label} || {}}));
+}
+
+sub get_commit
+{
+    my $self = shift;
+    my $commit = shift;
+
+    $self->load($commit);
+
+    return $self->{'COMMITS'}->{$commit}->{'OBJECT'};
+}
+
 sub load
 {
     my $self = shift;
@@ -70,6 +98,15 @@ sub load
         };
     };
     Amling::Git::Utils::log_commits([@args], $cb);
+}
+
+sub combined_weight
+{
+    my $self = shift;
+    my $weight_code = shift;
+    my @commits = @_;
+
+    ...
 }
 
 1;
