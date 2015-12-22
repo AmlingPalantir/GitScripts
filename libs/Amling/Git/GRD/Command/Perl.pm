@@ -63,6 +63,7 @@ sub execute
 
     $ctx->materialize_head();
     $self->{'sub'}->(Amling::Git::GRD::Command::Perl::G->new($ctx));
+    $ctx->uptake_head();
 }
 
 Amling::Git::GRD::Command::add_command(\&handler);
