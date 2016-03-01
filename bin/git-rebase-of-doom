@@ -157,6 +157,9 @@ Usage: git-rebase-of-doom <options> [<extra arguments>]
                                  SELF to indicate to leave the links unaltered
                                  (but stop generating the script "before" them)
                                  and defaults to whatever the last --onto was.
+   --exact-minus ...             Like --minus only rather than excluding all
+                                 ancestors of the first argument, excludes just
+                                 that one commit.
    --fixed-minus <commit>        Alias for --minus <commit>:SELF
 
    --[no]merge-cleaning          Do or don't eliminate dead merges.

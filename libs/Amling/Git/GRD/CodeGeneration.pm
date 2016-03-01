@@ -36,7 +36,7 @@ sub options
 
     return
     (
-        "onto=s" => sub { $current_default_onto = $_[1]; push @$minus_options, [$_[1], $_[1]]; },
+        "onto=s" => sub { $current_default_onto = $_[1]; push @$minus_options, [$_[1], $_[1], 1]; },
         "head=s" => sub { $head_options->{$_[1]} = 1; },
 
         "plus=s" => sub { $plus_options->{$_[1]} = 1; },
@@ -46,19 +46,35 @@ sub options
 
             if($v =~ /^(.*):(.*)$/)
             {
-                push @$minus_options, [$1, $2];
+                push @$minus_options, [$1, $2, 1];
             }
             else
             {
                 die "Single argument --minus given before --onto?" unless $current_default_onto;
-                push @$minus_options, [$v, $current_default_onto];
+                push @$minus_options, [$v, $current_default_onto, 1];
+            }
+
+            $first_is_negative = 0;
+        },
+        "exact-minus=s" => sub
+        {
+            my $v = $_[1];
+
+            if($v =~ /^(.*):(.*)$/)
+            {
+                push @$minus_options, [$1, $2, 0];
+            }
+            else
+            {
+                die "Single argument --exact-minus given before --onto?" unless $current_default_onto;
+                push @$minus_options, [$v, $current_default_onto, 0];
             }
 
             $first_is_negative = 0;
         },
         "fixed-minus=s" => sub
         {
-            push @$minus_options, [$_[1], "SELF"];
+            push @$minus_options, [$_[1], "SELF", 1];
             $first_is_negative = 0;
         },
 
@@ -71,7 +87,7 @@ sub options
                 {
                     $current_default_onto = $arg;
                 }
-                push @$minus_options, [$arg, $current_default_onto];
+                push @$minus_options, [$arg, $current_default_onto, 1];
                 $first_is_negative = 0;
                 return;
             }
@@ -115,7 +131,7 @@ sub generate
 
     $head_options = process_HEAD($head_options);
     $plus_options = process_HEAD($plus_options);
-    $minus_options = [map { [Amling::Git::Utils::convert_commitlike($_->[0]), ($_->[1] eq "SELF" ? "SELF" : Amling::Git::Utils::convert_commitlike($_->[1]))] } @$minus_options];
+    $minus_options = [map { [Amling::Git::Utils::convert_commitlike($_->[0]), ($_->[1] eq "SELF" ? "SELF" : Amling::Git::Utils::convert_commitlike($_->[1])), $_->[2]] } @$minus_options];
 
     my @targets = sort(keys(%{{map { Amling::Git::Utils::convert_commitlike($_) => 1 } keys(%$head_options), keys(%$plus_options)}}));
 
@@ -182,7 +198,7 @@ sub generate
         $parents{$commit} = $h->{'parents'};
         $subjects{$commit} = $h->{'msg'};
     };
-    Amling::Git::Utils::log_commits([(map { "^" . $_->[0] } @$minus_options), @targets], $log_cb);
+    Amling::Git::Utils::log_commits([(map { "^" . $_->[0] } grep { $_->[2] } @$minus_options), @targets], $log_cb);
 
     my %nodes;
     my %old_new;
@@ -282,8 +298,9 @@ sub build_nodes
     # Check for minuses
     for my $minus_option (@$minus_options)
     {
-        my ($match, $slide) = @$minus_option;
-        if(covers($match, $target))
+        my ($match, $slide, $recursive) = @$minus_option;
+        my $matches = $recursive ? covers($match, $target) : ($match eq $target);
+        if($matches)
         {
             if($slide eq 'SELF')
             {
