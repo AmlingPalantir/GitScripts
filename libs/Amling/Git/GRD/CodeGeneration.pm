@@ -279,42 +279,39 @@ sub build_nodes
         return $new;
     }
 
+    # Check for minuses
+    for my $minus_option (@$minus_options)
+    {
+        my ($match, $slide) = @$minus_option;
+        if(covers($match, $target))
+        {
+            if($slide eq 'SELF')
+            {
+                $slide = $target;
+            }
+
+            if(!$nodes->{$slide})
+            {
+                $nodes->{$slide} =
+                {
+                    'loads' => 0,
+                    'commands' => [],
+                    'build' => sub
+                    {
+                        die "Build called on minus node?!";
+                    },
+                    'generated' => $slide,
+                    'picks_contained' => {},
+                    'bases_contained' => {$slide => 1},
+                };
+            }
+            return $old_new->{$target} = $slide;
+        }
+    }
+
     if(!$parents->{$target})
     {
-        my $slide = undef;
-        for my $minus_option (@$minus_options)
-        {
-            if(covers($minus_option->[0], $target))
-            {
-                $slide = $minus_option->[1];
-                if($slide eq 'SELF')
-                {
-                    $slide = $target;
-                }
-                last;
-            }
-        }
-        if(!defined($slide))
-        {
-            die "Could not find minus $target in any minus options?!";
-        }
-
-        if(!$nodes->{$slide})
-        {
-            $nodes->{$slide} =
-            {
-                'loads' => 0,
-                'commands' => [],
-                'build' => sub
-                {
-                    die "Build called on minus node?!";
-                },
-                'generated' => $slide,
-                'picks_contained' => {},
-                'bases_contained' => {$slide => 1},
-            };
-        }
-        return $old_new->{$target} = $slide;
+        die "Could not find $target in any minus options?!";
     }
 
     my $build;
