@@ -17,7 +17,6 @@ sub new
         'HEAD_OPTIONS' => {},
         'PLUS_OPTIONS' => {},
         'MINUS_OPTIONS' => [],
-        'TREE_OPTIONS' => {},
     };
 
     bless $this, $class;
@@ -34,7 +33,6 @@ sub options
     my $head_options = $this->{'HEAD_OPTIONS'};
     my $plus_options = $this->{'PLUS_OPTIONS'};
     my $minus_options = $this->{'MINUS_OPTIONS'};
-    my $tree_options = $this->{'TREE_OPTIONS'};
 
     return
     (
@@ -86,8 +84,6 @@ sub options
 
             $plus_options->{$arg} = 1;
         },
-
-        "tree=s" => sub { $tree_options->{$_[1]} = 1; },
     );
 }
 
@@ -97,9 +93,8 @@ sub finish_options
 
     my $head_options = $this->{'HEAD_OPTIONS'};
     my $plus_options = $this->{'PLUS_OPTIONS'};
-    my $tree_options = $this->{'TREE_OPTIONS'};
 
-    if(!%$head_options && !%$plus_options && !%$tree_options)
+    if(!%$head_options && !%$plus_options)
     {
         $head_options->{'HEAD'} = 1;
     }
@@ -112,7 +107,6 @@ sub generate
     my $head_options = $this->{'HEAD_OPTIONS'};
     my $plus_options = $this->{'PLUS_OPTIONS'};
     my $minus_options = $this->{'MINUS_OPTIONS'};
-    my $tree_options = $this->{'TREE_OPTIONS'};
 
     # use of $minus_options below is boned
 
@@ -122,70 +116,6 @@ sub generate
     $head_options = process_HEAD($head_options);
     $plus_options = process_HEAD($plus_options);
     $minus_options = [map { [Amling::Git::Utils::convert_commitlike($_->[0]), ($_->[1] eq "SELF" ? "SELF" : Amling::Git::Utils::convert_commitlike($_->[1]))] } @$minus_options];
-
-    # convert trees to plusses
-    {
-        # First find all "maximal" commits in the tree (i.e.  where the tree branches off)
-        my %maximal_tree_commits;
-        for my $tree (keys(%$tree_options))
-        {
-            # dump out upstream section
-            my @tree_commits;
-            my %tree_commits;
-            my $cb = sub
-            {
-                my $h = shift;
-                push @tree_commits, $h;
-                $tree_commits{$h->{'hash'}} = 1;
-            };
-            Amling::Git::Utils::log_commits([(map { "^" . $_->[0] } @$minus_options), $tree], $cb);
-
-            # now find those that have no parents in the upstream section (all i.e.  parents in the base)
-            for my $h (@tree_commits)
-            {
-                my $maximal = 1;
-                for my $p (@{$h->{'parents'}})
-                {
-                    if($tree_commits{$p})
-                    {
-                        $maximal = 0;
-                        last;
-                    }
-                }
-                if($maximal)
-                {
-                    $maximal_tree_commits{$h->{'hash'}} = 1;
-                }
-            }
-        }
-
-        # now iterate over branches that contain each maximal tree commit
-        for my $commit (keys(%maximal_tree_commits))
-        {
-            open(my $fh, '-|', 'git', 'branch', '--contains', $commit) || die "Cannot open list branches containing $commit: $!";
-            while(my $line = <$fh>)
-            {
-                chomp $line;
-
-                $line =~ s/^..//;
-
-                # this BS probably won't happen but let's be sure
-                next if($line =~ /^\(.*\)$/);
-
-                my $branch = $line;
-
-                if($head_options->{$branch})
-                {
-                    # already included as head
-                }
-                else
-                {
-                    $plus_options->{$branch} = 1;
-                }
-            }
-            close($fh) || die "Cannot close list branches containing $commit: $!";
-        }
-    }
 
     my @targets = sort(keys(%{{map { Amling::Git::Utils::convert_commitlike($_) => 1 } keys(%$head_options), keys(%$plus_options)}}));
 
