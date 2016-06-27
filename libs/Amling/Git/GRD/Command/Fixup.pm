@@ -17,7 +17,7 @@ sub extended_handler
     my $s0 = shift;
     my $s1 = shift;
 
-    if($s0 !~ /^fixup ([^ ]+) ([^ ].*)$/)
+    if($s0 !~ /^fixup ([^ ]+) ([^#].*)$/)
     {
         return undef;
     }
@@ -73,7 +73,7 @@ sub str_simple
     return "fixup $commit" . (defined($msg) ? " (amended message)" : "");
 }
 
-Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
 Amling::Git::GRD::Command::add_command(\&extended_handler);
+Amling::Git::GRD::Command::add_command(sub { return __PACKAGE__->handler(@_) });
 
 1;
