@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+
+$| = 1;
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+my $repo = ".";
+my $revision = "HEAD";
+
+my $ignore_whitespace = 1;
+
+GetOptions(
+    "repo=s" => \$repo,
+    "revision=s" => \$revision,
+
+    "w!" => \$ignore_whitespace,
+);
+
+my @entries;
+my %files;
+{
+    while(<>)
+    {
+        chomp;
+        if(/^([^:]*):([0-9]*):(.*)$/)
+        {
+            my ($file, $line, $comment) = ($1, $2, $3);
+
+            push @entries, [$file, $line, $comment];
+            $files{$file} = 1;
+        }
+        else
+        {
+            die "Bad line: $_";
+        }
+    }
+}
+
+my %file_line_data;
+for my $file (sort(keys(%files)))
+{
+    my $line_data = $file_line_data{$file} = {};
+
+    open(my $fh, '-|', 'git', '-C', $repo, 'blame', ($ignore_whitespace ? '-w' : ()), '-p', $revision, '--', $file) || die "Cannot open git blame on $file: $!";
+    my $current_hash = "xxx";
+    my %hash_author;
+    my $lineno = 0;
+    my %line_commit;
+    my %line_author;
+    while(my $line = <$fh>)
+    {
+        chomp $line;
+        if($line =~ /^([0-9a-f]{40}) /)
+        {
+            $current_hash = $1;
+        }
+        if($line =~ /^author-mail <(.*)>$/)
+        {
+            $hash_author{$current_hash} = $1;
+        }
+        if($line =~ /^\t/)
+        {
+            ++$lineno;
+            $line_data->{$lineno} = [$current_hash, $hash_author{$current_hash}];
+        }
+    }
+    close($fh) || die "Cannot close git blame on $file: $!";
+}
+
+for my $entry (@entries)
+{
+    my ($file, $line, $comment) = @$entry;
+
+    my $data = $file_line_data{$file}->{$line} || die "No data for $file:$line?";
+
+    my ($commit, $author) = @$data;
+    $commit = substr($commit, 0, 12);
+    print "$author:$commit:$file:$line:$comment\n";
+}
