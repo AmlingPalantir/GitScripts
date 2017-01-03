@@ -97,7 +97,7 @@ sub _handle2
         ];
     }
 
-    return Amling::Git::G3MD::Resolver::Git->resolve_blocks(\@ret);
+    return Amling::Git::G3MD::Resolver::Git->map_blocks(\@ret);
 }
 
 sub help

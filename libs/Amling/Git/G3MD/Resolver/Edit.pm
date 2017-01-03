@@ -45,7 +45,7 @@ sub handle_simple
 
     my $blocks = Amling::Git::G3MD::Parser::parse_3way($lines);
 
-    return Amling::Git::G3MD::Resolver::Git->resolve_blocks($blocks);
+    return Amling::Git::G3MD::Resolver::Git->map_blocks($blocks);
 }
 
 Amling::Git::G3MD::Resolver::add_resolver(__PACKAGE__);

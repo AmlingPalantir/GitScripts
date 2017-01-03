@@ -109,7 +109,7 @@ for my $f (@f)
                 $stage_contents->(3),
             ],
         ];
-        $blocks = Amling::Git::G3MD::Resolver::Git->resolve_blocks($blocks);
+        $blocks = Amling::Git::G3MD::Resolver::Git->map_blocks($blocks);
     }
     else
     {

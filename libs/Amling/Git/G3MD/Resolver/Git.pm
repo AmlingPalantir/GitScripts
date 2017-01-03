@@ -62,7 +62,7 @@ sub handle_simple
     return Amling::Git::G3MD::Parser::parse_3way(\@lines);
 }
 
-sub resolve_blocks
+sub map_blocks
 {
     my $class = shift;
     my $blocks = shift;
