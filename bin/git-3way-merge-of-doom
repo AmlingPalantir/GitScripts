@@ -25,6 +25,7 @@ use lib "$FindBin::RealBin/../libs";
 
 use Amling::Git::G3MD::Parser;
 use Amling::Git::G3MD::Resolver::Git;
+use Amling::Git::G3MD::Resolver::Memory::Main;
 use Amling::Git::G3MD::Resolver;
 use Amling::Git::Utils;
 use Getopt::Long;
@@ -32,6 +33,7 @@ use Getopt::Long;
 my $index_files = 0;
 my $index_read = 0;
 my $index_write = 0;
+my $memory = 0;
 
 my @options =
 (
@@ -39,6 +41,7 @@ my @options =
     'index-read!' => \$index_read,
     'index-write!' => \$index_write,
     'index!' => sub { $index_files = 1; $index_read = 1; $index_write = 1; },
+    'memory!' => sub { $memory = 1; },
     'help' => sub { usage(0); },
 );
 
@@ -115,6 +118,10 @@ for my $f (@f)
     {
         my $lines = Amling::Git::Utils::slurp($f);
         $blocks = Amling::Git::G3MD::Parser::parse_3way($lines);
+    }
+    if($memory)
+    {
+        $blocks = Amling::Git::G3MD::Resolver::map_blocks($blocks, sub { return Amling::Git::G3MD::Resolver::Memory::Main->handle_simple(@_) });
     }
     my $lines2 = Amling::Git::G3MD::Resolver::resolve_blocks($blocks);
     Amling::Git::Utils::unslurp($f, $lines2);

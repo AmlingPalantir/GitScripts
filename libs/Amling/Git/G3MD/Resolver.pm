@@ -12,6 +12,38 @@ sub add_resolver
     push @resolvers, $resolver;
 }
 
+sub map_blocks
+{
+    my $blocks = shift;
+    my $cb = shift;
+
+    my @ret;
+    for my $block (@$blocks)
+    {
+        my $type = $block->[0];
+        if(0)
+        {
+        }
+        elsif($type eq 'LINE')
+        {
+            push @ret, $block;
+        }
+        elsif($type eq 'CONFLICT')
+        {
+            my $conflict = [@$block];
+            shift @$conflict;
+
+            push @ret, @{$cb->($conflict)};
+        }
+        else
+        {
+            die;
+        }
+    }
+
+    return \@ret;
+}
+
 sub resolve_blocks
 {
     my $blocks = shift;
