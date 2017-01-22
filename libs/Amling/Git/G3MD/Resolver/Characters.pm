@@ -97,13 +97,20 @@ sub handle_simple
         if(0)
         {
         }
-        elsif($type eq 'LINE' && $block->[1] =~ /^([0-9A-F]{2}): /)
+        elsif($type eq 'LINE')
         {
-            my $c = pack("H*", lc($1));
-            $pending->[0] .= $c;
-            $pending->[1] .= $c;
-            $pending->[2] .= $c;
-            $flush->() if($c eq "\n");
+            if($block->[1] =~ /^([0-9A-F]{2}): /)
+            {
+                my $c = pack("H*", lc($1));
+                $pending->[0] .= $c;
+                $pending->[1] .= $c;
+                $pending->[2] .= $c;
+                $flush->() if($c eq "\n");
+            }
+            else
+            {
+                die "Nonsense line from result of recursive merge: " . $block->[1];
+            }
         }
         elsif($type eq 'CONFLICT')
         {
@@ -114,13 +121,13 @@ sub handle_simple
             {
                 for my $line (@{$conflict->[2 * $i + 1]})
                 {
-                    if($line =~ /^([0-9A-F]{2})/)
+                    if($line =~ /^([0-9A-F]{2}): /)
                     {
                         $pending->[$i] .= pack("H*", lc($1));
                     }
                     else
                     {
-                        die;
+                        die "Nonsense line from result of recursive merge: $line";
                     }
                 }
             }
