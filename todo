@@ -10,6 +10,12 @@ G3MD
         in particular we'd like to be able to view context and in some cases merge with context
         this will require special work for punt and m*
         in particular, m* structure will almost certainly have to change entirely
+    space-ignoring?
+        perform greatest common subseq ignoring leading spaces, but...
+        interpret adds and edits per spacing surrounding
+            an individual line match is still a conflict unless one side is exact and the other is a space change
+            an add/edit is only "ok" if both before and after matches are the same space change (and it has to be applied appropriately to both middle and other sides)
+            otherwise we're not sure what to do with space, it's a conflict, and, importantly, most remain attached to both adjacent space-ignoring matches
 GRD
     various cleanup (in script as TODO)
     maybe try to figure out "already merged" changes and skip them
