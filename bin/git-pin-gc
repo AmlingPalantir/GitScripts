@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+
+$| = 1;
+
+use strict;
+use warnings;
+
+my %have;
+{
+    open(my $fh, '-|', 'git', 'show-ref', '-d') || die "Could not open git show-ref -d: $!";
+    while(my $l = <$fh>)
+    {
+        chomp $l;
+        if($l =~ /^([0-9a-f]{40}) refs\/pins\/([0-9a-f]{40})$/)
+        {
+            my ($c1, $c2) = ($1, $2);
+            if($c1 ne $c2)
+            {
+                die "Bad refs/pins/$c1 -> $c1!";
+            }
+            $have{$c1} = 1;
+        }
+    }
+    close($fh) || die "Could not close git show-ref -d: $!";
+}
+
+my %kill = %have;
+my %keep;
+{
+    open(my $fh, '-|', 'git', 'merge-base', '--independent', sort(keys(%have))) || die "Could not open git merge-base --independent ...: $!";
+    while(my $l = <$fh>)
+    {
+        chomp $l;
+        delete $kill{$l} || die "?!";
+        $keep{$l} = 1;
+    }
+    close($fh) || die "Could not close git merge-base --independent ...: $!";
+}
+
+{
+    open(my $fh, '|-', 'git', 'update-ref', '--stdin') || die "Could not open git update-ref ...: $!";
+    for my $commit (sort(keys(%keep)))
+    {
+        print $fh "verify refs/pins/$commit $commit\n";
+    }
+    for my $commit (sort(keys(%kill)))
+    {
+        print "Destroying redundant pin of $commit...\n";
+        print $fh "delete refs/pins/$commit $commit\n";
+    }
+    close($fh) || die "Could not close git update-ref ...: $!";
+}
+
+print "Done.\n";

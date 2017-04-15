@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+$| = 1;
+
+use strict;
+use warnings;
+
+my %commits;
+{
+    open(my $fh, '-|', 'git', 'rev-list', '--no-walk', @ARGV) || die "Could not open git rev-list ...: $!";
+    while(my $l = <$fh>)
+    {
+        chomp $l;
+        $l =~ /^[0-9a-f]{40}$/ || die "Bad git rev-list line: $l";
+        $commits{$l} = 1;
+    }
+    close($fh) || die "Could not close git rev-list ...: $!";
+}
+
+{
+    open(my $fh, '-|', 'git', 'show-ref', '-d') || die "Could not open git show-ref -d: $!";
+    while(my $l = <$fh>)
+    {
+        chomp $l;
+        if($l =~ /^([0-9a-f]{40}) refs\/pins\/\1$/)
+        {
+            my $commit = $1;
+            if(delete($commits{$commit}))
+            {
+                print "Already have $commit pinned.\n";
+            }
+        }
+    }
+    close($fh) || die "Could not close git show-ref -d: $!";
+}
+
+{
+    open(my $fh, '|-', 'git', 'update-ref', '--stdin') || die "Could not open git update-ref ...: $!";
+    for my $commit (sort(keys(%commits)))
+    {
+        print "Pinning $commit...\n";
+        print $fh "create refs/pins/$commit $commit\n";
+    }
+    close($fh) || die "Could not close git update-ref ...: $!";
+}
+
+print "Done.\n";
