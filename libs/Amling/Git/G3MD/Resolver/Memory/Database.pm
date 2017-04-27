@@ -31,7 +31,6 @@ sub _get_lines
 sub _get_id
 {
     my $conflict = shift;
-    my ($lhs_title, $lhs_lines, $mhs_title, $mhs_lines, $rhs_title, $rhs_lines) = @$conflict;
 
     my $sha1 = Digest->new("SHA-1");
 
