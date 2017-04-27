@@ -57,6 +57,31 @@ sub query
 sub record
 {
     my $conflict = shift;
+    my $res = shift;
+
+    my ($lhs_title, $lhs, $mhs_title, $mhs, $rhs_title, $rhs) = @$conflict;
+
+    # all the implied permutations
+    my @tuples;
+    push @tuples, [$lhs, $mhs, $rhs, $res];
+    push @tuples, [$lhs, $res, $rhs, $mhs];
+    push @tuples, [$mhs, $lhs, $res, $rhs];
+    push @tuples, [$mhs, $rhs, $res, $lhs];
+    push @tuples, [$rhs, $mhs, $lhs, $res];
+    push @tuples, [$rhs, $res, $lhs, $mhs];
+    push @tuples, [$res, $lhs, $mhs, $rhs];
+    push @tuples, [$res, $rhs, $mhs, $lhs];
+
+    for my $tuple (@tuples)
+    {
+        my ($lhs, $mhs, $rhs, $res) = @$tuple;
+        record_one(["LHS", $lhs, "MHS", $mhs, "RHS", $rhs], $res);
+    }
+}
+
+sub record_one
+{
+    my $conflict = shift;
     my $result = shift;
 
     my $id = _get_id($conflict);
