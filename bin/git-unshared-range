@@ -20,23 +20,7 @@ $| = 1;
 use strict;
 use warnings;
 
-my @e;
-for my $arg (@ARGV)
-{
-    if(!@e)
-    {
-        push @e, $arg;
-        next;
-    }
-
-    my @e2;
-    for my $e (@e)
-    {
-        push @e2, run('git', 'merge-base', '-a', $e, $arg);
-    }
-
-    @e = run('git', 'merge-base', '--independent', @e2);
-}
+my @e = run('git', 'merge-base', '-a', '--octopus', @ARGV);
 
 print join(" ", (map { "^$_" } sort(@e)), @ARGV) . "\n";
 
