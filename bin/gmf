@@ -1,0 +1,147 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010   Keith Amling, keith.amling@gmail.com
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+$| = 1;
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib "$FindBin::RealBin/../libs";
+
+use Amling::Git::Utils;
+use Getopt::Long;
+
+my $rc_path = $ENV{'HOME'} . '/.gmfrc';
+my $configure = 1;
+my $fetch = 1;
+my $all = 0;
+my @args;
+
+my @options =
+(
+    'rc=s' => \$rc_path,
+    'configure!' => \$configure,
+    'fetch!' => \$fetch,
+    'all!' => \$all,
+    '<>' => sub
+    {
+        my $arg = "" . $_[0];
+        push @args, $arg;
+    },
+);
+
+GetOptions(@options) || die;
+
+my $lines = Amling::Git::Utils::slurp($rc_path);
+my $type_tag_data = {};
+for my $line (@$lines)
+{
+    if($line =~ /^([^:]*):([^:]*):([^:]*)(:RO)?$/)
+    {
+        my $type = $1;
+        my $tag = $2;
+        my $path = $3;
+        my $ro = $4 ? 1 : 0;
+
+        $type_tag_data->{$type}->{$tag} =
+        {
+            'path' => $path,
+            'ro' => $ro,
+        };
+    }
+}
+
+my $handle_type_tag = sub
+{
+    my $type = shift;
+    my $local_tag = shift;
+
+    my $tag_data = $type_tag_data->{$type} || die "No type $type";
+
+    my $local_data = $tag_data->{$local_tag} || die "No tag $type:$local_tag";
+    return unless($local_data);
+
+    return if($local_data->{'ro'});
+    my $local_path = $local_data->{'path'};
+
+    for my $remote_tag (sort(keys(%$tag_data)))
+    {
+        next if($remote_tag eq $local_tag);
+        my $remote_data = $tag_data->{$remote_tag};
+
+        if($configure)
+        {
+            my $c = sub
+            {
+                my $k = shift;
+                my $v = shift;
+                run("git", "-C", $local_path, "config", "remote.$remote_tag.$k", $v);
+            };
+            $c->("url", $remote_data->{'path'});
+            $c->("fetch", "+refs/heads/*:refs/remotes/$remote_tag/*");
+        }
+
+        if($fetch)
+        {
+            run("git", "-C", $local_path, "fetch", "-p", $remote_tag);
+        }
+    }
+};
+
+my $handle_type = sub
+{
+    my $type = shift;
+
+    for my $tag (sort(keys(%{$type_tag_data->{$type} || die "No type $type"})))
+    {
+        $handle_type_tag->($type, $tag);
+    }
+};
+
+for my $arg (@args)
+{
+    if(0)
+    {
+    }
+    elsif($arg =~ /^([^:]*)$/)
+    {
+        $handle_type->($1);
+    }
+    elsif($arg =~ /^([^:]*):([^:]*)$/)
+    {
+        $handle_type_tag->($1, $2);
+    }
+    else
+    {
+        die "Bad arg: $arg";
+    }
+}
+
+if($all)
+{
+    for my $type (sort(keys(%$type_tag_data)))
+    {
+        $handle_type->($type);
+    }
+}
+
+sub run
+{
+    #print "Running: " . join(", ", @_). "...\n";
+    (system("env", @_) == 0) || die "Command failed: " . join(" ", @_) . ": $!";
+}
