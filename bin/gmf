@@ -90,7 +90,7 @@ my $handle_type_tag = sub
             {
                 my $k = shift;
                 my $v = shift;
-                run("git", "-C", $local_path, "config", "remote.$remote_tag.$k", $v);
+                run("$type:$local_tag <- $type:$remote_tag", "git", "-C", $local_path, "config", "remote.$remote_tag.$k", $v);
             };
             $c->("url", $remote_data->{'path'});
             $c->("fetch", "+refs/heads/*:refs/remotes/$remote_tag/*");
@@ -98,7 +98,7 @@ my $handle_type_tag = sub
 
         if($fetch)
         {
-            run("git", "-C", $local_path, "fetch", "-p", $remote_tag);
+            run("$type:$local_tag <- $type:$remote_tag", "git", "-C", $local_path, "fetch", "-p", $remote_tag);
         }
     }
 };
@@ -142,6 +142,20 @@ if($all)
 
 sub run
 {
-    #print "Running: " . join(", ", @_). "...\n";
-    (system("env", @_) == 0) || die "Command failed: " . join(" ", @_) . ": $!";
+    my $label = shift;
+    my @cmd = @_;
+    my $desc = join(" ", @cmd);
+
+    #print "[$label] Running $desc...\n";
+
+    # arggh!
+    unshift @cmd, 'sh', '-c', 'exec "$@" 2>&1', '-';
+
+    open(my $fh, '-|', @cmd) || die "Could not open $desc: $!";
+    while(my $line = <$fh>)
+    {
+        chomp $line;
+        print "[$label] $line\n";
+    }
+    close($fh) || die "Could not close $desc: $!";
 }
