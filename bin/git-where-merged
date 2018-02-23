@@ -18,22 +18,23 @@ if(@ARGV < 1)
 }
 
 my $master = shift;
-
-my %commits;
-my $master_commit;
-{
-    my $cb = sub
-    {
-        my $commit = shift;
-        $master_commit = $commit->{'hash'} unless(defined($master_commit));
-        $commits{$commit->{'hash'}} = $commit;
-    };
-    Amling::Git::Utils::log_commits([$master], $cb);
-}
+my $master_commit = Amling::Git::Utils::convert_commitlike($master);
 
 for my $query (@ARGV)
 {
-    my $path = find($master_commit, Amling::Git::Utils::convert_commitlike($query), {});
+    my $query_commit = Amling::Git::Utils::convert_commitlike($query);
+
+    my %commits;
+    {
+        my $cb = sub
+        {
+            my $commit = shift;
+            $commits{$commit->{'hash'}} = $commit;
+        };
+        Amling::Git::Utils::log_commits(['--boundary', "^$query_commit", $master_commit], $cb);
+    }
+
+    my $path = find(\%commits, $master_commit, $query_commit, {});
     if(!defined($path))
     {
         print "$query: ?\n";
@@ -50,6 +51,7 @@ for my $query (@ARGV)
 
 sub find
 {
+    my $commits = shift;
     my $commit = shift;
     my $query_commit = shift;
     my $already_checked = shift;
@@ -65,16 +67,19 @@ sub find
     }
     $already_checked->{$commit} = 1;
 
-    my @parents = @{$commits{$commit}->{'parents'}};
+    my $commit_data = $commits->{$commit};
+    return undef unless(defined($commit_data));
+
+    my @parents = @{$commit_data->{'parents'}};
     if(@parents)
     {
-        my $path = find($parents[0], $query_commit, $already_checked);
+        my $path = find($commits, $parents[0], $query_commit, $already_checked);
         return $path if(defined($path));
     }
 
     for(my $i = 1; $i < @parents; ++$i)
     {
-        my $path = find($parents[$i], $query_commit, $already_checked);
+        my $path = find($commits, $parents[$i], $query_commit, $already_checked);
         return [$commit, @$path] if(defined($path));
     }
 
