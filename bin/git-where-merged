@@ -26,7 +26,7 @@ for my $query (@ARGV)
 
     my %parentses;
     {
-        open(my $fh, '-|', 'git', 'rev-list', '--parents', "^$query_commit", $master_commit) || die "Could not open git rev-list ...: $!";
+        open(my $fh, '-|', 'git', 'rev-list', '--ancestry-path', '--parents', "^$query_commit", $master_commit) || die "Could not open git rev-list ...: $!";
         while(my $l = <$fh>)
         {
             chomp $l;
