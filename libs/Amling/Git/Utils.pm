@@ -62,6 +62,21 @@ sub log_commits
     close($fh) || die "Cannot close git log: $!";
 }
 
+sub log_commit
+{
+    my $commitlike = shift;
+    my $ret = undef;
+    my $cb = sub
+    {
+        my $h = shift;
+        defined($ret) && die;
+        $ret = $h;
+    };
+    log_commits(["-1", $commitlike], $cb);
+    defined($ret) || die;
+    return $ret;
+}
+
 sub _log_commits_aux
 {
     my $cb = shift;
