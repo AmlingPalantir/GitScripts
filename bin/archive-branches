@@ -21,9 +21,9 @@ if(@ARGV)
     if(!-e $archive_repo)
     {
         run('git', 'init', '--bare', $archive_repo);
-        run('git', 'push', $archive_repo, (map { "$_:$time--$_" } @ARGV));
-        run('destroy-branches', @ARGV);
     }
+    run('git', 'push', $archive_repo, (map { "$_:$time--$_" } @ARGV));
+    run('destroy-branches', @ARGV);
 }
 
 sub run
