@@ -47,4 +47,15 @@ if(!defined($bad))
     die "Nothing bad?";
 }
 
-print join(" ", map { "^$_" } sort(keys(%good))) . " $bad\n";
+my @good;
+{
+    open(my $fh, '-|', 'git', 'merge-base', '--independent', sort(keys(%good))) || die "Cannot open 'git merge-base --independent ...'";
+    while(my $line = <$fh>)
+    {
+        chomp $line;
+        push @good, $line;
+    }
+    close($fh) || die "Cannot close 'git merge-base --independent ...'";
+}
+
+print join(" ", map { "^$_" } sort(@good)) . " $bad\n";
