@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+
+$| = 1;
+
+use strict;
+use warnings;
+
+use File::Basename;
+
+if(@ARGV != 2)
+{
+    die "Usage: git-mvzo <from> <to>\n";
+}
+
+my $from = shift;
+my $to = shift;
+
+mkd(dirname($to));
+
+print "Delegating to: git mv $from $to\n";
+exec('git', 'mv', $from, $to);
+
+sub mkd
+{
+    my $target = shift;
+
+    return if(-d $target);
+
+    mkd(dirname($target));
+
+    print "Making $target...\n";
+    mkdir $target;
+
+    if(!-d $target)
+    {
+        die "Could not mkdir $target!";
+    }
+}
