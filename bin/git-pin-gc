@@ -16,7 +16,7 @@ my %have;
             my ($c1, $c2) = ($1, $2);
             if($c1 ne $c2)
             {
-                die "Bad refs/pins/$c1 -> $c1!";
+                die "Bad refs/pins/$c2 -> $c1!";
             }
             $have{$c1} = 1;
         }
