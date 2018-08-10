@@ -12,37 +12,34 @@ sub dfs
 
     my %already = ($first => undef);
     my %q = (0 => [$first]);
-    my $d = 0;
     SRCH:
-    while(%q)
+    for(my $d = 0; 1; ++$d)
     {
+        # have to leave in %q since zero length steps are a thing
         my $sqr = $q{$d};
-        if(!defined($sqr))
+
+        next unless(defined($sqr));
+        next unless(@$sqr);
+
+        while(@$sqr)
         {
-            ++$d;
-            next;
+            my $e = shift @$sqr;
+
+            for my $ne_pair (@{$cb->{'step'}->($e)})
+            {
+                my ($ne, $step) = @$ne_pair;
+
+                next if($already{$ne});
+                $already{$ne} = $e;
+
+                last SRCH if($ne eq $last);
+
+                my $d2 = $d + $step;
+                push @{$q{$d2} ||= []}, $ne;
+            }
         }
-        if(!@$sqr)
-        {
-            delete $q{$d};
-            ++$d;
-            next;
-        }
 
-        my $e = shift @$sqr;
-
-        for my $ne_pair (@{$cb->{'step'}->($e)})
-        {
-            my ($ne, $step) = @$ne_pair;
-
-            next if($already{$ne});
-            $already{$ne} = $e;
-
-            last SRCH if($ne eq $last);
-
-            my $d2 = $d + $step;
-            push @{$q{$d} ||= []}, $ne;
-        }
+        delete($q{$d});
     }
 
     my $pos = $last;
