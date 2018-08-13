@@ -23,6 +23,14 @@ sub args_regex
     return qr//;
 }
 
+sub args_string
+{
+    my $this = shift;
+    my @match = @_;
+
+    return join(' ', @match);
+}
+
 sub alias_regex
 {
     my $this = shift;

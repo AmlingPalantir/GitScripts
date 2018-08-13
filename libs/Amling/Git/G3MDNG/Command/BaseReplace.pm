@@ -14,14 +14,22 @@ sub handle2
     my @match = @_;
 
     my $block = $state->current_block();
+    my $pos = $state->current_pos();
 
     my ($type, @rest) = @$block;
     return 0 unless($type eq 'CONFLICT');
 
-    my $replaced_blocks = $this->handle3(\@rest, @match);
-    return 0 unless($replaced_blocks);
+    my $new_blocks = $this->handle3(\@rest, @match);
+    return 0 unless($new_blocks);
 
-    $state->replace_current($replaced_blocks);
+    my $desc = $this->{'ALIASES'}->[0];
+    my $args = $this->args_string(@match);
+    if($args ne '')
+    {
+        $desc .= " $args";
+    }
+
+    $state->splice($pos, $pos + 1, $new_blocks, $desc);
     $state->mark_dirty();
 
     return 1;

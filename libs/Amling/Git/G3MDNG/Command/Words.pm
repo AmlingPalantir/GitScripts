@@ -88,7 +88,7 @@ sub split_words
     return $nchunks;
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['w', 'word', 'words'], 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'));
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['W', 'Word', 'Words'], ''));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['words', 'word', 'w'], 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['Words', 'Word', 'W'], ''));
 
 1;

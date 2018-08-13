@@ -108,6 +108,6 @@ sub handle3
     ];
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['cs', 'csp', 'csplit']));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['csplit', 'csp', 'cs']));
 
 1;

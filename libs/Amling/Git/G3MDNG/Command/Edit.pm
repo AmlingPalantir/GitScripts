@@ -60,6 +60,6 @@ sub handle3
     ];
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['e', 'edit']));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['edit', 'e']));
 
 1;

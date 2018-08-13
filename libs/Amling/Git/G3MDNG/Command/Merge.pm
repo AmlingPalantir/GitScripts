@@ -47,7 +47,7 @@ sub handle2
     return 1;
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['mn', 'mnext'], 1));
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['mp', 'mprev', 'mprevious'], -1));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['mnext', 'mn'], 1));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['mprevious', 'mprev', 'mp'], -1));
 
 1;

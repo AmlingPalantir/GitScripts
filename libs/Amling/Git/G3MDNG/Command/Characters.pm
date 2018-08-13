@@ -28,6 +28,6 @@ sub handle3
     ];
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['c', 'char', 'chars', 'character', 'characters']));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['characters', 'character', 'chars', 'char', 'c']));
 
 1;

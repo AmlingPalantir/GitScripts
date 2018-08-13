@@ -29,6 +29,6 @@ sub handle3
     return [map { ['RESOLVED', "$_\n"] } grep { $ct{$_} > 0 } (sort(keys(%ct)))];
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['s', 'sort']));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['sort', 's']));
 
 1;

@@ -74,6 +74,6 @@ sub handle3
     return \@replaced_blocks;
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['']));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['diff3', '']));
 
 1;

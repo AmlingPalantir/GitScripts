@@ -28,7 +28,7 @@ sub handle3
     return [map { ['RESOLVED', $_] } @{$rest->[$this->{'IDX'}]}];
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['<', 'ours'], 1));
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['>', 'theirs'], 5));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['ours', '<'], 1));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['theirs', '>'], 5));
 
 1;

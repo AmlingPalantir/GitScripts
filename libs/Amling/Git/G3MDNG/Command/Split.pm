@@ -60,6 +60,6 @@ sub handle3
     ];
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['sp', 'split']));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['split', 'sp']));
 
 1;

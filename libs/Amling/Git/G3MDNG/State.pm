@@ -24,16 +24,6 @@ sub new
     return $this;
 }
 
-sub replace_current
-{
-    my $this = shift;
-    my $new_blocks = shift;
-
-    my $pos = $this->{'POS'};
-
-    $this->splice($pos, $pos + 1, $new_blocks);
-}
-
 sub merge
 {
     my $this = shift;
@@ -92,7 +82,7 @@ sub merge
         $merged_rhs_chunks,
     ];
 
-    $this->splice($s, $e, [$merged_block]);
+    $this->splice($s, $e, [$merged_block], 'merge');
 }
 
 sub find_conflict
@@ -191,6 +181,7 @@ sub splice
     my $s = shift;
     my $e = shift;
     my $new_blocks = shift;
+    my $desc = shift;
 
     # We can't handle this case (e.g.  may leave with no blocks left, nowhere
     # to put cursor!).  If we ever invent deletion (goodness, why) maybe we'll
@@ -221,11 +212,20 @@ sub splice
         $pos2 = $s;
     }
 
-    push @{$this->{'UNDO'}}, [$pos, $pos2, $blocks, [$old_blocks, $new_blocks]];
+    my $edit =
+    {
+        'IN' => $old_blocks,
+        'OUT' => $new_blocks,
+        'DESC' => $desc,
+        'START' => $s,
+    };
+    push @{$this->{'UNDO'}}, [$pos, $pos2, $blocks, $edit];
     $this->{'REDO'} = [];
 
     $this->{'BLOCKS'} = $blocks2;
     $this->{'POS'} = $pos2;
+
+    print "Applied " . describe_edit($edit) . ".\n";
 }
 
 sub undo
@@ -240,6 +240,8 @@ sub undo
 
     $this->{'POS'} = $pos_before;
     $this->{'BLOCKS'} = $blocks_before;
+
+    print "Undid " . describe_edit($edit) . ".\n";
 
     return 1;
 }
@@ -257,7 +259,21 @@ sub redo
     $this->{'POS'} = $pos_after;
     $this->{'BLOCKS'} = $blocks_after;
 
+    print "Redid " . describe_edit($edit) . ".\n";
+
     return 1;
+}
+
+sub describe_edit
+{
+    my $edit = shift;
+
+    my $in_blocks = $edit->{'IN'};
+    my $out_blocks = $edit->{'IN'};
+    my $desc = $edit->{'DESC'};
+    my $s = $edit->{'START'};
+
+    return "$desc [$s, " . ($s + scalar(@$in_blocks)) . ") -> [$s, " . ($s + scalar(@$out_blocks)) . ")";
 }
 
 1;

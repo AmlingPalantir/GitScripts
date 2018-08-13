@@ -38,7 +38,7 @@ sub handle2
     return 1;
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['N', 'Next'], 1));
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['P', 'Prev', 'Previous'], -1));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['Next', 'N'], 1));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['Previous', 'Prev', 'P'], -1));
 
 1;

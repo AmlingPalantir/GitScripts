@@ -29,7 +29,7 @@ sub handle2
     return $state->$method();
 }
 
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['u', 'undo'], 'undo'));
-Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['r', 'redo'], 'redo'));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['undo', 'u'], 'undo'));
+Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['redo', 'r'], 'redo'));
 
 1;
