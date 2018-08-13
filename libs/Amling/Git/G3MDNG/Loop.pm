@@ -67,6 +67,7 @@ sub run_file
         #use Data::Dumper; print STDERR Dumper($state->{'BLOCKS'});
 
         my $block = $state->current_block();
+        my $pos = $state->current_pos();
 
         my ($type, @rest) = @$block;
         if(0)
@@ -77,8 +78,9 @@ sub run_file
             my ($chunk) = @rest;
 
             my ($is_encoded, $lines) = @{Amling::Git::G3MDNG::Utils::encode_chunks([$chunk])};
+            my $is_encoded_string = $is_encoded ? ' (encoded)' : '';
 
-            print "Resolved:\n";
+            print "Resolved #$pos$is_encoded_string:\n";
             print "   [[[[[[[\n";
             print "   $_\n" for(@$lines);
             print "   ]]]]]]]\n";
@@ -88,8 +90,9 @@ sub run_file
             my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @rest;
 
             my ($is_encoded, $lhs_lines, $mhs_lines, $rhs_lines) = @{Amling::Git::G3MDNG::Utils::encode_chunks($lhs_chunks, $mhs_chunks, $rhs_chunks)};
+            my $is_encoded_string = $is_encoded ? ' (encoded)' : '';
 
-            print "Conflict:\n";
+            print "Conflict #$pos$is_encoded_string:\n";
             print "   <<<<<<< $lhs_title\n";
             print "   $_\n" for(@$lhs_lines);
             print "   ||||||| $mhs_title\n";
