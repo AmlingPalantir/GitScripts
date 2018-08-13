@@ -1,0 +1,81 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010   Keith Amling, keith.amling@gmail.com
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+$| = 1;
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib "$FindBin::RealBin/../libs";
+
+use Amling::Git::G3MDNG::Loop;
+use Amling::Git::Utils;
+use Getopt::Long;
+
+my $loop = Amling::Git::G3MDNG::Loop->new();
+
+my @options =
+(
+    $loop->options(),
+);
+
+GetOptions(@options) || die;
+
+my $index_data = {};
+open(my $fh, '-|', 'git', 'ls-files', '-u') || die "Could not open git ls-files -u: $!";
+while(my $l = <$fh>)
+{
+    chomp $l;
+    if($l =~ /^\d+ [0-9a-f]{40} ([123])\t(.*)$/)
+    {
+        ($index_data->{$2} ||= {})->{$1} = 1;
+    }
+}
+close($fh) || die "Could not open git ls-files -u: $!";
+
+my %files;
+for my $f (sort(keys(%$index_data)))
+{
+    $files{$f} =
+    {
+        'blocks' =>
+        [
+            [
+                'CONFLICT',
+                "$f:LHS",
+                Amling::Git::Utils::show_raw(":2:./$f"),
+                "$f:MHS",
+                Amling::Git::Utils::show_raw(":1:./$f"),
+                "$f:RHS",
+                Amling::Git::Utils::show_raw(":3:./$f"),
+            ],
+        ],
+        'save' => sub
+        {
+            my $text = shift;
+
+            open(my $fh, '>', $f) || die "Could not open $f: $!";
+            print $fh $text;
+            close($fh) || die "Could not close $f: $!";
+
+            (system('git', 'add', $f) == 0) || die "Could not system git add $f: $!";
+        },
+    };
+}
+
+$loop->run(\%files);

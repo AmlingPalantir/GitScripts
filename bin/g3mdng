@@ -1,0 +1,111 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010   Keith Amling, keith.amling@gmail.com
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+$| = 1;
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib "$FindBin::RealBin/../libs";
+
+use Amling::Git::G3MD::Parser;
+use Amling::Git::G3MDNG::Loop;
+use Amling::Git::Utils;
+use Getopt::Long;
+
+my $loop = Amling::Git::G3MDNG::Loop->new();
+my @f;
+
+my @options =
+(
+    $loop->options(),
+
+    '<>' => sub
+    {
+        my $arg = "" . $_[0];
+        push @f, $arg;
+    },
+);
+
+GetOptions(@options) || die;
+
+my %files;
+for my $f (@f)
+{
+    my $blocks = parse_file($f);
+
+    $files{$f} =
+    {
+        'blocks' => parse_file($f),
+        'save' => sub { write_file($f, @_); },
+    };
+}
+
+$loop->run(\%files);
+
+sub parse_file
+{
+    my $f = shift;
+
+    my $lines = Amling::Git::Utils::slurp($f);
+
+    my $blocks = [];
+    for my $old_block (@{Amling::Git::G3MD::Parser::parse_3way($lines)})
+    {
+        my ($type, @rest) = @$old_block;
+
+        if(0)
+        {
+        }
+        elsif($type eq 'LINE')
+        {
+            my ($line) = @rest;
+            push @$blocks, ['RESOLVED', "$line\n"];
+        }
+        elsif($type eq 'CONFLICT')
+        {
+            my ($lhs_title, $lhs_lines, $mhs_title, $mhs_lines, $rhs_title, $rhs_lines) = @rest;
+            push @$blocks,
+            [
+                'CONFLICT',
+                $lhs_title,
+                [map { "$_\n" } @$lhs_lines],
+                $mhs_title,
+                [map { "$_\n" } @$mhs_lines],
+                $rhs_title,
+                [map { "$_\n" } @$rhs_lines],
+            ];
+        }
+        else
+        {
+            die;
+        }
+    }
+
+    return $blocks;
+}
+
+sub write_file
+{
+    my $f = shift;
+    my $text = shift;
+
+    open(my $fh, '>', $f) || die "Could not open $f: $!";
+    print $fh $text;
+    close($fh) || die "Could not close $f: $!";
+}

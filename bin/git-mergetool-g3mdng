@@ -1,0 +1,68 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2010   Keith Amling, keith.amling@gmail.com
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+$| = 1;
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib "$FindBin::RealBin/../libs";
+
+use Amling::Git::G3MDNG::Loop;
+use Amling::Git::Utils;
+use Getopt::Long;
+
+my $loop = Amling::Git::G3MDNG::Loop->new();
+
+my @options =
+(
+    $loop->options(),
+);
+
+GetOptions(@options) || die;
+
+my ($OURS, $BASE, $THEIRS, $MERGED) = @ARGV;
+
+my %files =
+(
+    $MERGED =>
+    {
+        'blocks' =>
+        [
+            [
+                'CONFLICT',
+                $OURS,
+                Amling::Git::Utils::slurp_raw($OURS),
+                $BASE,
+                Amling::Git::Utils::slurp_raw($BASE),
+                $THEIRS,
+                Amling::Git::Utils::slurp_raw($THEIRS),
+            ],
+        ],
+        'save' => sub
+        {
+            my $text = shift;
+
+            open(my $fh, '>', $MERGED) || die "Could not open $MERGED: $!";
+            print $fh $text;
+            close($fh) || die "Could not close $MERGED: $!";
+        },
+    },
+);
+
+$loop->run(\%files);

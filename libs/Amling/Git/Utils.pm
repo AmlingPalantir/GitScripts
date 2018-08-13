@@ -189,13 +189,19 @@ sub run_system
 
 sub slurp
 {
+    my $r = slurp_raw(@_);
+    chomp for(@$r);
+    return $r;
+}
+
+sub slurp_raw
+{
     my $f = shift;
 
     my @lines;
     open(my $fh, '<', $f) || die "Cannot open $f for reading: $!";
     while(my $line = <$fh>)
     {
-        chomp $line;
         push @lines, $line;
     }
     close($fh) || die "Cannot close $f for reading: $!";
@@ -220,13 +226,19 @@ sub unslurp
 
 sub show
 {
+    my $r = show_raw(@_);
+    chomp for(@$r);
+    return $r;
+}
+
+sub show_raw
+{
     my @cmd = ('git', 'show', @_);
     my $cmd = join(' ', @cmd);
     open(my $fh, '-|', @cmd) || die "Could not open $cmd: $!";
     my @l;
     while(my $l = <$fh>)
     {
-        chomp $l;
         push @l, $l;
     }
     close($fh) || die "Could not close $cmd: $!";
