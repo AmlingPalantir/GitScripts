@@ -29,7 +29,7 @@ sub handle2
         $desc .= " $args";
     }
 
-    $state->splice($pos, $pos + 1, $new_blocks, $desc);
+    $state->splice($pos, $pos + 1, $new_blocks, $desc, 1);
     $state->mark_dirty();
 
     return 1;

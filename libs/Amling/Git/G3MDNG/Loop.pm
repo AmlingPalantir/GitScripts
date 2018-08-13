@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Amling::Git::G3MDNG::Command;
+use Amling::Git::G3MDNG::Memory;
 use Amling::Git::G3MDNG::State;
 use Amling::Git::G3MDNG::Utils;
 
@@ -13,6 +14,7 @@ sub new
 
     my $this =
     {
+        'MEMORY' => 0,
     };
 
     bless $this, $class;
@@ -22,8 +24,10 @@ sub new
 
 sub options
 {
+    my $this = shift;
     return
     (
+        '--memory!' => \$this->{'MEMORY'},
     );
 }
 
@@ -52,11 +56,18 @@ sub run_file
     my $save = shift;
 
     my $state = Amling::Git::G3MDNG::State->new($blocks0);
+    my $memory = 'Amling::Git::G3MDNG::Memory';
 
+    TOP:
     while(1)
     {
         if($state->is_dirty())
         {
+            if($this->{'MEMORY'})
+            {
+                $memory->apply($state);
+            }
+
             my $pos = $state->find_conflict();
             last unless(defined($pos));
 
@@ -116,6 +127,14 @@ sub run_file
     my $text = $state->require_auto_resolve();
 
     print "Successfully resolved $file.\n";
+
+    if($this->{'MEMORY'})
+    {
+        for my $edit (@{$state->memory_edits()})
+        {
+            $memory->save($edit);
+        }
+    }
 
     $save->($text);
 }

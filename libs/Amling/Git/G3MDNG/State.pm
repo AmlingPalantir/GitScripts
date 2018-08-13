@@ -82,7 +82,7 @@ sub merge
         $merged_rhs_chunks,
     ];
 
-    $this->splice($s, $e, [$merged_block], 'merge');
+    $this->splice($s, $e, [$merged_block], 'merge', 1);
 }
 
 sub find_conflict
@@ -161,6 +161,31 @@ sub move_delta
     $this->{'POS'} %= scalar(@{$this->{'BLOCKS'}});
 }
 
+sub blocks
+{
+    my $this = shift;
+
+    return $this->{'BLOCKS'};
+}
+
+sub old_blockses
+{
+    my $this = shift;
+
+    return [map { $_->[2] } @{$this->{'UNDO'}}];
+}
+
+sub memory_edits
+{
+    my $this = shift;
+
+    my $edits = [map { $_->[3] } @{$this->{'UNDO'}}];
+    $edits = [grep { $_->{'MEMORIZABLE'} } @$edits];
+    $edits = [map { @{edit_symmetries($_)} } @$edits];
+
+    return $edits;
+}
+
 sub current_pos
 {
     my $this = shift;
@@ -182,6 +207,7 @@ sub splice
     my $e = shift;
     my $new_blocks = shift;
     my $desc = shift;
+    my $memorizable = shift;
 
     # We can't handle this case (e.g.  may leave with no blocks left, nowhere
     # to put cursor!).  If we ever invent deletion (goodness, why) maybe we'll
@@ -218,6 +244,7 @@ sub splice
         'OUT' => $new_blocks,
         'DESC' => $desc,
         'START' => $s,
+        'MEMORIZABLE' => $memorizable,
     };
     push @{$this->{'UNDO'}}, [$pos, $pos2, $blocks, $edit];
     $this->{'REDO'} = [];
@@ -274,6 +301,50 @@ sub describe_edit
     my $s = $edit->{'START'};
 
     return "$desc [$s, " . ($s + scalar(@$in_blocks)) . ") -> [$s, " . ($s + scalar(@$out_blocks)) . ")";
+}
+
+sub edit_symmetries
+{
+    my $edit = shift;
+
+    return [$edit, flip_edit($edit)];
+}
+
+sub flip_edit
+{
+    my $edit = shift;
+
+    return
+    {
+        'IN' => flip_blocks($edit->{'IN'}),
+        'OUT' => flip_blocks($edit->{'OUT'}),
+        'DESC' => "reversed " . $edit->{'DESC'},
+    };
+}
+
+sub flip_blocks
+{
+    my $blocks = shift;
+
+    return [map { flip_block($_) } @$blocks];
+}
+
+sub flip_block
+{
+    my $block = shift;
+
+    my ($type, @rest) = @$block;
+    if($type eq 'RESOLVED')
+    {
+        my ($chunk) = @rest;
+        return ['RESOLVED', $chunk];
+    }
+    if($type eq 'CONFLICT')
+    {
+        my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @rest;
+        return ['CONFLICT', $rhs_title, $rhs_chunks, $mhs_title, $mhs_chunks, $lhs_title, $lhs_chunks];
+    }
+    die;
 }
 
 1;
