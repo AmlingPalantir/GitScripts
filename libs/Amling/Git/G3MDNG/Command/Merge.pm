@@ -33,12 +33,22 @@ sub handle2
     my $state = shift;
     my $ct = shift || 1;
 
+    my $blocks = $state->blocks();
     my $s1 = $state->current_pos();
     my $s2 = $state->current_pos() + $ct * $this->{'DIR'};
 
     if($s2 < $s1)
     {
         ($s1, $s2) = ($s2, $s1);
+    }
+
+    if($s1 < 0)
+    {
+        $s1 = 0;
+    }
+    if($s2 >= @$blocks)
+    {
+        $s2 = @$blocks - 1;
     }
 
     $state->merge($s1, $s2 + 1);
