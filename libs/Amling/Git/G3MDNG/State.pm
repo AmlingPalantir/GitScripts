@@ -31,6 +31,7 @@ sub merge
     my $e = shift;
 
     my $blocks = $this->{'BLOCKS'};
+    die unless(0 <= $s && $s <= $e && $e <= @$blocks);
 
     my $merged_lhs_title = undef;
     my $merged_mhs_title = undef;
