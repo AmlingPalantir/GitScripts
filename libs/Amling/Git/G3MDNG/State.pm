@@ -297,7 +297,7 @@ sub describe_edit
     my $edit = shift;
 
     my $in_blocks = $edit->{'IN'};
-    my $out_blocks = $edit->{'IN'};
+    my $out_blocks = $edit->{'OUT'};
     my $desc = $edit->{'DESC'};
     my $s = $edit->{'START'};
 
