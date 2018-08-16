@@ -47,8 +47,6 @@ GetOptions(@options) || die;
 my %files;
 for my $f (@f)
 {
-    my $blocks = parse_file($f);
-
     $files{$f} =
     {
         'blocks' => parse_file($f),
