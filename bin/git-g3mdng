@@ -36,20 +36,20 @@ my @options =
 
 GetOptions(@options) || die;
 
-my $index_data = {};
+my $index_files = {};
 open(my $fh, '-|', 'git', 'ls-files', '-u') || die "Could not open git ls-files -u: $!";
 while(my $l = <$fh>)
 {
     chomp $l;
-    if($l =~ /^\d+ [0-9a-f]{40} ([123])\t(.*)$/)
+    if($l =~ /^\d+ [0-9a-f]{40} [123]\t(.*)$/)
     {
-        ($index_data->{$2} ||= {})->{$1} = 1;
+        $index_files->{$1} = 1;
     }
 }
 close($fh) || die "Could not open git ls-files -u: $!";
 
 my %files;
-for my $f (sort(keys(%$index_data)))
+for my $f (sort(keys(%$index_files)))
 {
     $files{$f} =
     {
