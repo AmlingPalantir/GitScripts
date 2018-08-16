@@ -58,7 +58,6 @@ sub run_file
     my $state = Amling::Git::G3MDNG::State->new($blocks0);
     my $memory = 'Amling::Git::G3MDNG::Memory';
 
-    TOP:
     while(1)
     {
         if($state->is_dirty())
