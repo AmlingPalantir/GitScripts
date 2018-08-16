@@ -9,7 +9,7 @@ use base ('Amling::Git::G3MDNG::Command::BaseReplace');
 
 sub args_regex
 {
-    return qr/(-?\d+)(?:\s+(-?\d+)\s+(-?\d+))?/;
+    return qr/\s(-?\d+)(?:\s+(-?\d+)\s+(-?\d+))?/;
 }
 
 sub handle3
