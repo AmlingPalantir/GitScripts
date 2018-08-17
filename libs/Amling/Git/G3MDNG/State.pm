@@ -241,7 +241,7 @@ sub splice
     if($hash->($old_blocks) eq $hash->($new_blocks))
     {
         print "Refused NOP " . describe_edit($edit) . "\n";
-        return;
+        return 0;
     }
 
     push @{$this->{'UNDO'}}, [$pos, $pos2, $blocks, $edit];
@@ -251,6 +251,7 @@ sub splice
     $this->{'POS'} = $pos2;
 
     print "Applied " . describe_edit($edit) . ".\n";
+    return 1;
 }
 
 sub undo
