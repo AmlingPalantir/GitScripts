@@ -26,7 +26,12 @@ sub handle3
         }
     }
 
-    return [map { ['RESOLVED', "$_\n"] } grep { $ct{$_} > 0 } (sort(keys(%ct)))];
+    my @lines = grep { $ct{$_} > 0 } (sort(keys(%ct)));
+
+    # ouch, can't splice empty list!
+    return [['RESOLVED', '']] unless(@lines);
+
+    return [map { ['RESOLVED', "$_\n"] } @lines];
 }
 
 Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['sort', 's']));
