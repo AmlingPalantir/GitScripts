@@ -3,6 +3,7 @@ package Amling::Git::G3MDNG::Memory;
 use strict;
 use warnings;
 
+use Amling::Git::G3MDNG::Utils;
 use Digest;
 use File::Basename ('dirname');
 use File::Path ('make_path');
@@ -10,6 +11,8 @@ use JSON;
 
 my $json = JSON->new();
 $json->allow_nonref();
+
+my $hash = \&Amling::Git::G3MDNG::Utils::hash;
 
 sub apply
 {
@@ -21,10 +24,10 @@ sub apply
     {
         my $blocks = $state->blocks();
 
-        my $blocks_hash = hash($blocks);
+        my $blocks_hash = $hash->($blocks);
         for my $old_blocks (@{$state->old_blockses()})
         {
-            if($blocks_hash eq hash($old_blocks))
+            if($blocks_hash eq $hash->($old_blocks))
             {
                 print "Current state matches a previous state, refusing to apply memory!\n";
                 return;
@@ -34,7 +37,7 @@ sub apply
         my $in_hashes = {};
         for my $block (@$blocks)
         {
-            $in_hashes->{hash($block)} = 1;
+            $in_hashes->{$hash->($block)} = 1;
         }
 
         my $edits = {};
@@ -42,9 +45,9 @@ sub apply
         {
             for my $in_block (@{$edit->{'IN'}})
             {
-                if($in_hashes->{hash($in_block)})
+                if($in_hashes->{$hash->($in_block)})
                 {
-                    $edits->{hash($edit)} = $edit;
+                    $edits->{$hash->($edit)} = $edit;
                     last;
                 }
             }
@@ -54,7 +57,7 @@ sub apply
         {
             for my $edit (@{$this->search($in_hash)})
             {
-                $edits->{hash($edit)} = $edit;
+                $edits->{$hash->($edit)} = $edit;
             }
         }
 
@@ -64,14 +67,14 @@ sub apply
             my $in_blocks = $edit->{'IN'};
             my $out_blocks = $edit->{'OUT'};
             my $desc = $edit->{'DESC'};
-            next if(hash($in_blocks) eq hash($out_blocks));
+            next if($hash->($in_blocks) eq $hash->($out_blocks));
             my $len = @$in_blocks;
             EDIT_POS:
             for(my $i = 0; $i + $len <= @$blocks; ++$i)
             {
                 for(my $j = 0; $j < $len; ++$j)
                 {
-                    if(hash($blocks->[$i + $j]) ne hash($in_blocks->[$j]))
+                    if($hash->($blocks->[$i + $j]) ne $hash->($in_blocks->[$j]))
                     {
                         next EDIT_POS;
                     }
@@ -105,12 +108,12 @@ sub save
         'DESC' => $edit->{'DESC'},
     };
 
-    my $edit_hash = hash($edit);
+    my $edit_hash = $hash->($edit);
     $this->save_raw("edits/$edit_hash", $edit);
 
     for my $in_block (@{$edit->{'IN'}})
     {
-        my $in_hash = hash($in_block);
+        my $in_hash = $hash->($in_block);
         $this->save_raw("links/$in_hash/$edit_hash", 1);
     }
 }
@@ -178,17 +181,6 @@ sub load_raw
     $file = $this->rel($file);
 
     return $json->decode(join('', @{Amling::Git::Utils::slurp_raw($file)}));
-}
-
-sub hash
-{
-    my $r = shift;
-
-    my $sha1 = Digest->new("SHA-1");
-
-    $sha1->add($json->encode($r));
-
-    return $sha1->hexdigest();
 }
 
 1;

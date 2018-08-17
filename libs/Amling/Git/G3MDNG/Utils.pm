@@ -3,6 +3,12 @@ package Amling::Git::G3MDNG::Utils;
 use strict;
 use warnings;
 
+use Digest;
+use JSON;
+
+my $json = JSON->new();
+$json->allow_nonref();
+
 sub encode_chunks
 {
     my @chunkses = @_;
@@ -125,6 +131,17 @@ sub auto_resolve_text
     return $lhs_text if($lhs_text eq $rhs_text);
 
     return undef;
+}
+
+sub hash
+{
+    my $r = shift;
+
+    my $sha1 = Digest->new("SHA-1");
+
+    $sha1->add($json->encode($r));
+
+    return $sha1->hexdigest();
 }
 
 1;
