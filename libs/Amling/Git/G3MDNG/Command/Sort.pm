@@ -12,7 +12,7 @@ sub handle3
     my $this = shift;
     my $rest = shift;
 
-    my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @$rest;
+    my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @$rest;
 
     my %ct;
     for my $pair ([$lhs_chunks, 1], [$rhs_chunks, 1], [$mhs_chunks, -1])

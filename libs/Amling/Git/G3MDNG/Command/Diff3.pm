@@ -13,7 +13,7 @@ sub handle3
     my $class = shift;
     my $rest = shift;
 
-    my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @$rest;
+    my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @$rest;
 
     my $r = Text::Diff3::diff3($lhs_chunks, $mhs_chunks, $rhs_chunks);
 
@@ -57,11 +57,8 @@ sub handle3
         push @replaced_blocks,
         [
             'CONFLICT',
-            $lhs_title,
             [map { $lhs_chunks->[$_ - 1] } ($lhs_start..$lhs_end)],
-            $mhs_title,
             [map { $mhs_chunks->[$_ - 1] } ($mhs_start..$mhs_end)],
-            $rhs_title,
             [map { $rhs_chunks->[$_ - 1] } ($rhs_start..$rhs_end)],
         ];
 

@@ -16,7 +16,7 @@ sub handle3
     my $class = shift;
     my $rest = shift;
 
-    my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @$rest;
+    my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @$rest;
 
     my ($is_encoded, $lhs_lines, $mhs_lines, $rhs_lines) = @{Amling::Git::G3MDNG::Utils::encode_chunks($lhs_chunks, $mhs_chunks, $rhs_chunks)};
 
@@ -50,11 +50,8 @@ sub handle3
     [
         [
             'CONFLICT',
-            $lhs_title,
             $lhs_chunks2,
-            $mhs_title,
             $mhs_chunks2,
-            $rhs_title,
             $rhs_chunks2,
         ],
     ];

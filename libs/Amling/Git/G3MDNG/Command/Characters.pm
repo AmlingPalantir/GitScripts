@@ -12,17 +12,14 @@ sub handle3
     my $this = shift;
     my $rest = shift;
 
-    my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @$rest;
+    my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @$rest;
 
     return
     [
         [
             'CONFLICT',
-            $lhs_title,
             [map { split(//, $_) } @$lhs_chunks],
-            $mhs_title,
             [map { split(//, $_) } @$mhs_chunks],
-            $rhs_title,
             [map { split(//, $_) } @$rhs_chunks],
         ],
     ];

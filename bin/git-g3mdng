@@ -57,11 +57,8 @@ for my $f (sort(keys(%$index_files)))
         [
             [
                 'CONFLICT',
-                "$f:LHS",
                 Amling::Git::Utils::show_raw(":2:./$f"),
-                "$f:MHS",
                 Amling::Git::Utils::show_raw(":1:./$f"),
-                "$f:RHS",
                 Amling::Git::Utils::show_raw(":3:./$f"),
             ],
         ],

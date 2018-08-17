@@ -20,7 +20,7 @@ sub handle3
     my $mhs_split = shift;
     my $rhs_split = shift;
 
-    my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @$rest;
+    my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @$rest;
 
     $mhs_split = $lhs_split unless(defined($mhs_split));
     $rhs_split = $lhs_split unless(defined($rhs_split));
@@ -89,20 +89,14 @@ sub handle3
     [
         [
             'CONFLICT',
-            $lhs_title,
             $lhs_chunks2a,
-            $mhs_title,
             $mhs_chunks2a,
-            $rhs_title,
             $rhs_chunks2a,
         ],
         [
             'CONFLICT',
-            $lhs_title,
             $lhs_chunks2b,
-            $mhs_title,
             $mhs_chunks2b,
-            $rhs_title,
             $rhs_chunks2b,
         ],
     ];

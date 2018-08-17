@@ -97,19 +97,19 @@ sub run_file
         }
         elsif($type eq 'CONFLICT')
         {
-            my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @rest;
+            my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @rest;
 
             my ($is_encoded, $lhs_lines, $mhs_lines, $rhs_lines) = @{Amling::Git::G3MDNG::Utils::encode_chunks($lhs_chunks, $mhs_chunks, $rhs_chunks)};
             my $is_encoded_string = $is_encoded ? ' (encoded)' : '';
 
             print "Conflict $file #$pos$is_encoded_string:\n";
-            print "   <<<<<<< $lhs_title\n";
+            print "   <<<<<<<\n";
             print "   $_\n" for(@$lhs_lines);
-            print "   ||||||| $mhs_title\n";
+            print "   |||||||\n";
             print "   $_\n" for(@$mhs_lines);
             print "   =======\n";
             print "   $_\n" for(@$rhs_lines);
-            print "   >>>>>>> $rhs_title\n";
+            print "   >>>>>>>\n";
         }
         else
         {

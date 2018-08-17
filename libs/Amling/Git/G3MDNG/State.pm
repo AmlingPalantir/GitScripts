@@ -33,9 +33,6 @@ sub merge
     my $blocks = $this->{'BLOCKS'};
     die unless(0 <= $s && $s <= $e && $e <= @$blocks);
 
-    my $merged_lhs_title = undef;
-    my $merged_mhs_title = undef;
-    my $merged_rhs_title = undef;
     my $merged_lhs_chunks = [];
     my $merged_mhs_chunks = [];
     my $merged_rhs_chunks = [];
@@ -55,10 +52,7 @@ sub merge
         }
         elsif($type eq 'CONFLICT')
         {
-            my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @rest;
-            $merged_lhs_title = $lhs_title unless(defined($merged_lhs_title));
-            $merged_mhs_title = $mhs_title unless(defined($merged_mhs_title));
-            $merged_rhs_title = $rhs_title unless(defined($merged_rhs_title));
+            my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @rest;
             push @$merged_lhs_chunks, @$lhs_chunks;
             push @$merged_mhs_chunks, @$mhs_chunks;
             push @$merged_rhs_chunks, @$rhs_chunks;
@@ -68,18 +62,12 @@ sub merge
             die;
         }
     }
-    $merged_lhs_title = 'LHS' unless(defined($merged_lhs_title));
-    $merged_mhs_title = 'MHS' unless(defined($merged_mhs_title));
-    $merged_rhs_title = 'RHS' unless(defined($merged_rhs_title));
 
     my $merged_block =
     [
         'CONFLICT',
-        $merged_lhs_title,
         $merged_lhs_chunks,
-        $merged_mhs_title,
         $merged_mhs_chunks,
-        $merged_rhs_title,
         $merged_rhs_chunks,
     ];
 
@@ -342,8 +330,8 @@ sub flip_block
     }
     if($type eq 'CONFLICT')
     {
-        my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @rest;
-        return ['CONFLICT', $rhs_title, $rhs_chunks, $mhs_title, $mhs_chunks, $lhs_title, $lhs_chunks];
+        my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @rest;
+        return ['CONFLICT', $rhs_chunks, $mhs_chunks, $lhs_chunks];
     }
     die;
 }

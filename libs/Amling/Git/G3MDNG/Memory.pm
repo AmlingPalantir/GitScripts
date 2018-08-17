@@ -209,8 +209,7 @@ sub hash_block
     }
     if($type eq 'CONFLICT')
     {
-        my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @rest;
-        # strip titles!
+        my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @rest;
         return _jhash(['CONFLICT', $lhs_chunks, $mhs_chunks, $rhs_chunks]);
     }
     die;

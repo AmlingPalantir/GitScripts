@@ -101,7 +101,7 @@ sub auto_resolve_block
 
     if($type eq 'CONFLICT')
     {
-        my ($lhs_title, $lhs_chunks, $mhs_title, $mhs_chunks, $rhs_title, $rhs_chunks) = @rest;
+        my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @rest;
 
         my $lhs_text = join('', @$lhs_chunks);
         my $mhs_text = join('', @$mhs_chunks);

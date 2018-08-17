@@ -81,11 +81,8 @@ sub parse_file
             push @$blocks,
             [
                 'CONFLICT',
-                $lhs_title,
                 [map { "$_\n" } @$lhs_lines],
-                $mhs_title,
                 [map { "$_\n" } @$mhs_lines],
-                $rhs_title,
                 [map { "$_\n" } @$rhs_lines],
             ];
         }
