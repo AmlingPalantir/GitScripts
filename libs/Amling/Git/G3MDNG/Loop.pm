@@ -90,7 +90,7 @@ sub run_file
             my ($is_encoded, $lines) = @{Amling::Git::G3MDNG::Utils::encode_chunks([$chunk])};
             my $is_encoded_string = $is_encoded ? ' (encoded)' : '';
 
-            print "Resolved #$pos$is_encoded_string:\n";
+            print "Resolved $file #$pos$is_encoded_string:\n";
             print "   [[[[[[[\n";
             print "   $_\n" for(@$lines);
             print "   ]]]]]]]\n";
@@ -102,7 +102,7 @@ sub run_file
             my ($is_encoded, $lhs_lines, $mhs_lines, $rhs_lines) = @{Amling::Git::G3MDNG::Utils::encode_chunks($lhs_chunks, $mhs_chunks, $rhs_chunks)};
             my $is_encoded_string = $is_encoded ? ' (encoded)' : '';
 
-            print "Conflict #$pos$is_encoded_string:\n";
+            print "Conflict $file #$pos$is_encoded_string:\n";
             print "   <<<<<<< $lhs_title\n";
             print "   $_\n" for(@$lhs_lines);
             print "   ||||||| $mhs_title\n";
