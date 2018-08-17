@@ -5,6 +5,8 @@ use warnings;
 
 use Amling::Git::G3MDNG::Utils;
 
+my $hash = \&Amling::Git::G3MDNG::Utils::hash;
+
 sub new
 {
     my $class = shift;
@@ -235,6 +237,13 @@ sub splice
         'START' => $s,
         'MEMORIZABLE' => $memorizable,
     };
+
+    if($hash->($old_blocks) eq $hash->($new_blocks))
+    {
+        print "Refused NOP " . describe_edit($edit) . "\n";
+        return;
+    }
+
     push @{$this->{'UNDO'}}, [$pos, $pos2, $blocks, $edit];
     $this->{'REDO'} = [];
 
