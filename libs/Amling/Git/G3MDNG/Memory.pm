@@ -21,10 +21,10 @@ sub apply
     {
         my $blocks = $state->blocks();
 
-        my $blocks_hash = $this->hash_blocks($blocks);
+        my $blocks_hash = hash($blocks);
         for my $old_blocks (@{$state->old_blockses()})
         {
-            if($blocks_hash eq $this->hash_blocks($old_blocks))
+            if($blocks_hash eq hash($old_blocks))
             {
                 print "Current state matches a previous state, refusing to apply memory!\n";
                 return;
@@ -34,7 +34,7 @@ sub apply
         my $in_hashes = {};
         for my $block (@$blocks)
         {
-            $in_hashes->{$this->hash_block($block)} = 1;
+            $in_hashes->{hash($block)} = 1;
         }
 
         my $edits = {};
@@ -42,9 +42,9 @@ sub apply
         {
             for my $in_block (@{$edit->{'IN'}})
             {
-                if($in_hashes->{$this->hash_block($in_block)})
+                if($in_hashes->{hash($in_block)})
                 {
-                    $edits->{$this->hash_edit($edit)} = $edit;
+                    $edits->{hash($edit)} = $edit;
                     last;
                 }
             }
@@ -54,7 +54,7 @@ sub apply
         {
             for my $edit (@{$this->search($in_hash)})
             {
-                $edits->{$this->hash_edit($edit)} = $edit;
+                $edits->{hash($edit)} = $edit;
             }
         }
 
@@ -64,14 +64,14 @@ sub apply
             my $in_blocks = $edit->{'IN'};
             my $out_blocks = $edit->{'OUT'};
             my $desc = $edit->{'DESC'};
-            next if($this->hash_blocks($in_blocks) eq $this->hash_blocks($out_blocks));
+            next if(hash($in_blocks) eq hash($out_blocks));
             my $len = @$in_blocks;
             EDIT_POS:
             for(my $i = 0; $i + $len <= @$blocks; ++$i)
             {
                 for(my $j = 0; $j < $len; ++$j)
                 {
-                    if($this->hash_block($blocks->[$i + $j]) ne $this->hash_block($in_blocks->[$j]))
+                    if(hash($blocks->[$i + $j]) ne hash($in_blocks->[$j]))
                     {
                         next EDIT_POS;
                     }
@@ -105,12 +105,12 @@ sub save
         'DESC' => $edit->{'DESC'},
     };
 
-    my $edit_hash = $this->hash_edit($edit);
+    my $edit_hash = hash($edit);
     $this->save_raw("edits/$edit_hash", $edit);
 
     for my $in_block (@{$edit->{'IN'}})
     {
-        my $in_hash = $this->hash_block($in_block);
+        my $in_hash = hash($in_block);
         $this->save_raw("links/$in_hash/$edit_hash", 1);
     }
 }
@@ -180,42 +180,7 @@ sub load_raw
     return $json->decode(join('', @{Amling::Git::Utils::slurp_raw($file)}));
 }
 
-sub hash_edit
-{
-    my $this = shift;
-    my $edit = shift;
-
-    return _jhash([$this->hash_blocks($edit->{'IN'}), $this->hash_blocks($edit->{'OUT'}), $edit->{'DESC'}]);
-}
-
-sub hash_blocks
-{
-    my $this = shift;
-    my $blocks = shift;
-
-    return _jhash([map { $this->hash_block($_) } @$blocks]);
-}
-
-sub hash_block
-{
-    my $this = shift;
-    my $block = shift;
-
-    my ($type, @rest) = @$block;
-    if($type eq 'RESOLVED')
-    {
-        my ($chunk) = @rest;
-        return _jhash(['RESOLVED', $chunk]);
-    }
-    if($type eq 'CONFLICT')
-    {
-        my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @rest;
-        return _jhash(['CONFLICT', $lhs_chunks, $mhs_chunks, $rhs_chunks]);
-    }
-    die;
-}
-
-sub _jhash
+sub hash
 {
     my $r = shift;
 
