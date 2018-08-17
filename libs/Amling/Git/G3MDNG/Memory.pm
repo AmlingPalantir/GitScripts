@@ -10,6 +10,7 @@ use File::Path ('make_path');
 use JSON;
 
 my $json = JSON->new();
+$json->pretty(1);
 $json->allow_nonref();
 
 my $hash = \&Amling::Git::G3MDNG::Utils::hash;
