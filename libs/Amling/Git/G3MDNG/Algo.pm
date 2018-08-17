@@ -5,6 +5,37 @@ use warnings;
 
 use Text::Diff3;
 
+sub diff3_blocks
+{
+    my $blocks = shift;
+
+    my $new_blocks = [];
+    for my $block (@$blocks)
+    {
+        my ($type, @rest) = @$block;
+
+        if(0)
+        {
+        }
+        elsif($type eq 'RESOLVED')
+        {
+            my ($chunk) = @rest;
+            push @$new_blocks, ['RESOLVED', $chunk];
+        }
+        elsif($type eq 'CONFLICT')
+        {
+            my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @rest;
+            push @$new_blocks, @{diff3($lhs_chunks, $mhs_chunks, $rhs_chunks)};
+        }
+        else
+        {
+            die;
+        }
+    }
+
+    return $new_blocks;
+}
+
 sub diff3
 {
     my $lhs_chunks = shift;

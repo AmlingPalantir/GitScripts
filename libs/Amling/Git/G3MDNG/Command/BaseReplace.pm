@@ -35,29 +35,7 @@ sub handle2
         return 1;
     }
 
-    my $newer_blocks = [];
-    for my $new_block (@$new_blocks)
-    {
-        my ($type, @rest) = @$new_block;
-
-        if(0)
-        {
-        }
-        elsif($type eq 'RESOLVED')
-        {
-            my ($chunk) = @rest;
-            push @$newer_blocks, ['RESOLVED', $chunk];
-        }
-        elsif($type eq 'CONFLICT')
-        {
-            my ($lhs_chunks, $mhs_chunks, $rhs_chunks) = @rest;
-            push @$newer_blocks, @{Amling::Git::G3MDNG::Algo::diff3($lhs_chunks, $mhs_chunks, $rhs_chunks)};
-        }
-        else
-        {
-            die;
-        }
-    }
+    my $newer_blocks = Amling::Git::G3MDNG::Algo::diff3_blocks($new_blocks);
 
     $state->splice($pos, $pos + @$new_blocks, $newer_blocks, "auto diff3", 1);
     $state->mark_dirty();
