@@ -9,7 +9,7 @@ use base ('Amling::Git::G3MDNG::Command::BaseReplace');
 
 sub args_regex
 {
-    return qr/\s(-?\d+)(?:\s+(-?\d+)\s+(-?\d+))?/;
+    return qr/\s(-?\d+|\*)(?:\s+(-?\d+|\*)\s+(-?\d+|\*))?/;
 }
 
 sub handle3
@@ -29,9 +29,9 @@ sub handle3
     my $mhs_len = $this->compute_len($mhs_chunks);
     my $rhs_len = $this->compute_len($rhs_chunks);
 
-    $lhs_split = $lhs_len - $1 if($lhs_split =~ /^-(\d+)$/);
-    $mhs_split = $mhs_len - $1 if($mhs_split =~ /^-(\d+)$/);
-    $rhs_split = $rhs_len - $1 if($rhs_split =~ /^-(\d+)$/);
+    $lhs_split = _interpret_split($lhs_len, $lhs_split);
+    $mhs_split = _interpret_split($mhs_len, $mhs_split);
+    $rhs_split = _interpret_split($rhs_len, $rhs_split);
 
     return undef unless(0 <= $lhs_split && $lhs_split <= $lhs_len);
     return undef unless(0 <= $mhs_split && $mhs_split <= $mhs_len);
@@ -56,6 +56,16 @@ sub handle3
             $rhs_chunks2b,
         ],
     ];
+}
+
+sub _interpret_split
+{
+    my $len = shift;
+    my $split = shift;
+
+    return $len if($split eq '*');
+    return ($len - $1) if($split =~ /^-(\d+)$/);
+    return $split;
 }
 
 1;
