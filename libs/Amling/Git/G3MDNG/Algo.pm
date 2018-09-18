@@ -33,6 +33,21 @@ sub diff3_blocks
         }
     }
 
+    if(!@$new_blocks)
+    {
+        # we leave as an all-empty conflict to avoid trying to do an empty
+        # splice (!)
+        return
+        [
+            [
+                'CONFLICT',
+                [],
+                [],
+                [],
+            ],
+        ];
+    }
+
     return $new_blocks;
 }
 

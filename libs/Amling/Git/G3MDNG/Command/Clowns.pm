@@ -25,7 +25,19 @@ sub handle3
     my $this = shift;
     my $rest = shift;
 
-    return [map { ['RESOLVED', $_] } @{$rest->[$this->{'IDX'}]}];
+    my $chunks = $rest->[$this->{'IDX'}];
+
+    # we leave as a conflict to avoid trying to do an empty splice in the case
+    # of picking an empty side (!)
+    return
+    [
+        [
+            'CONFLICT',
+            $chunks,
+            $chunks,
+            $chunks,
+        ],
+    ];
 }
 
 Amling::Git::G3MDNG::Command::add_command(__PACKAGE__->new(['ours', '<'], 0));
