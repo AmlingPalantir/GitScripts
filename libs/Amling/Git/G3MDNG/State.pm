@@ -3,6 +3,7 @@ package Amling::Git::G3MDNG::State;
 use strict;
 use warnings;
 
+use Amling::Git::G3MDNG::Algo;
 use Amling::Git::G3MDNG::Utils;
 
 my $hash = \&Amling::Git::G3MDNG::Utils::hash;
@@ -344,6 +345,20 @@ sub flip_block
         return ['CONFLICT', $rhs_chunks, $mhs_chunks, $lhs_chunks];
     }
     die;
+}
+
+sub maybe_auto_diff3
+{
+    my $this = shift;
+    my $s = shift;
+    my $e = shift;
+
+    my $blocks = $this->{'BLOCKS'};
+    my $old_blocks = [@$blocks[$s..($e - 1)]];
+    my $new_blocks = Amling::Git::G3MDNG::Algo::diff3_blocks($old_blocks);
+
+    return if($hash->($old_blocks) eq $hash->($new_blocks));
+    $this->splice($s, $e, $new_blocks, "auto diff3", 1);
 }
 
 1;
